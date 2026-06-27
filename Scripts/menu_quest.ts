@@ -19998,8 +19998,7 @@ new ButtonInfo({
             if (runtimeRefMissCount === 1 || runtimeRefMissCount % 120 === 0) {
                 console.warn("[LateUpdate] Runtime refs unavailable; keeping cached state and skipping this frame");
             }
-            return LateUpdate.invoke();
-        }
+        } else {
         runtimeRefMissCount = 0;
         deltaTime = Time.method("get_deltaTime").invoke();
         time      = Time.method("get_time").invoke();
@@ -20225,7 +20224,9 @@ new ButtonInfo({
                 } catch(_) {}
             }
         }
+        } catch(_) {}
 
+        try {
         updateInput();
 
         if (pcMode && pcMenuOpen) {
@@ -20371,10 +20372,9 @@ new ButtonInfo({
         prevRightGrab = rightGrab;
         pcPrevMouse0 = rightTrigger;
 
+        } catch(_) {}
+
         return LateUpdate.invoke();
-        } catch(e) {
-            try { return LateUpdate.invoke(); } catch(_) {}
-        }
     };
     
     function installLogcat() {
