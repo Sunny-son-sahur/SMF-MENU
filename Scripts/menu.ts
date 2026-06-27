@@ -1522,6 +1522,7 @@ let lastBasketballTeleportTime = 0;
 let basketballteleportgunenabled = false;
 let lastDebugTime = 0;
 let footballMagnetObject: any = null;
+let footballStrings: Map<string, any> = new Map();
     function getarialnocrash2() {
         if (arial && !arial.isNull()) return arial;
         const nowMs = Date.now();
@@ -1540,6 +1541,7 @@ let footballMagnetObject: any = null;
     }
     function destroyGun() {
         if (footballMagnetObject && !footballMagnetObject.isNull?.()) { Destroy(footballMagnetObject); footballMagnetObject = null; }
+        if (footballStrings.size > 0) { footballStrings.forEach((l) => { try { const g = l.method("get_gameObject").invoke(); if (g && !g.isNull?.()) Destroy(g); } catch(_) {} }); footballStrings.clear(); }
         if (GunPointer && !GunPointer.isNull?.()) { Destroy(GunPointer); GunPointer = null; }
         if (GunLine && !GunLine.isNull?.()) {
             try { GunLine.method("get_gameObject").invoke().method("SetActive").invoke(false); } catch(e) {}
@@ -9335,7 +9337,7 @@ new ButtonInfo({
             }
             footballMagnetObject = spawnItemAtPos("item_football", spawnPos, spawnRot);
             if (footballMagnetObject && !footballMagnetObject.isNull?.()) {
-                sendNotification("Football Magnet ON - everyone linked!", false);
+                sendNotification("Football Magnet ON - strings active!", false);
             } else {
                 sendNotification("Failed to spawn football", false, 3);
             }
@@ -9345,6 +9347,15 @@ new ButtonInfo({
     },
     disableMethod: () => {
         try {
+            footballStrings.forEach((line) => {
+                try {
+                    if (line && !line.isNull?.()) {
+                        const go = line.method("get_gameObject").invoke();
+                        if (go && !go.isNull?.()) Destroy(go);
+                    }
+                } catch(_) {}
+            });
+            footballStrings.clear();
             if (footballMagnetObject && !footballMagnetObject.isNull?.()) {
                 Destroy(footballMagnetObject);
             }
@@ -9366,20 +9377,57 @@ new ButtonInfo({
                     try { footballMagnetObject.method("get_transform").invoke().method("set_position").invoke(ballPos); } catch(_) {}
                 }
             }
+            const ballGO = footballMagnetObject.method("get_gameObject").invoke();
+            const ballPos = ballGO.method("get_transform").invoke().method("get_position").invoke();
             const targets = getAllNetPlayersList(false);
-            if (targets.length > 0) {
-                const ballGO = footballMagnetObject.method("get_gameObject").invoke();
-                const ballPos = ballGO.method("get_transform").invoke().method("get_position").invoke();
-                for (const p of targets) {
-                    if (!p || p.handle.isNull()) continue;
+            const activeKeys = new Set<string>();
+            for (const p of targets) {
+                if (!p || p.handle.isNull()) continue;
+                try {
+                    const pTransform = p.method("get_gameObject").invoke().method("get_transform").invoke();
+                    const pPos = pTransform.method("get_position").invoke();
+                    const key = p.handle.toString();
+                    activeKeys.add(key);
                     try { p.method("RPC_Teleport").invoke(ballPos); } catch(_) {}
-                }
+                    let line = footballStrings.get(key);
+                    if (!line || line.isNull?.()) {
+                        const lineObj = createObject(zeroVector, identityQuaternion, oneVector, 0, [0, 0, 0, 0]);
+                        line = addComponent(lineObj, LineRenderer);
+                        const lineMaterial = line.method("get_material").invoke();
+                        lineMaterial.method("set_shader").invoke(TextShader);
+                        line.method("set_startColor").invoke([1.0, 0.3, 0.1, 0.8]);
+                        line.method("set_endColor").invoke([1.0, 0.6, 0.2, 0.4]);
+                        line.method("set_startWidth").invoke(0.008);
+                        line.method("set_endWidth").invoke(0.003);
+                        line.method("set_positionCount").invoke(12);
+                        line.method("set_useWorldSpace").invoke(true);
+                        footballStrings.set(key, line);
+                    }
+                    for (let s = 0; s < 12; s++) {
+                        const t = s / 11;
+                        const segX = ballPos.field("x").value + (pPos.field("x").value - ballPos.field("x").value) * t;
+                        const segY = ballPos.field("y").value + (pPos.field("y").value - ballPos.field("y").value) * t - 0.03 * Math.sin(t * Math.PI);
+                        const segZ = ballPos.field("z").value + (pPos.field("z").value - ballPos.field("z").value) * t;
+                        line.method("SetPosition").invoke(s, [segX, segY, segZ]);
+                    }
+                } catch(_) {}
             }
+            footballStrings.forEach((line, key) => {
+                if (!activeKeys.has(key)) {
+                    try {
+                        if (line && !line.isNull?.()) {
+                            const go = line.method("get_gameObject").invoke();
+                            if (go && !go.isNull?.()) Destroy(go);
+                        }
+                    } catch(_) {}
+                    footballStrings.delete(key);
+                }
+            });
         } catch(e) {
             console.error("[Football Magnet] Loop error:", e);
         }
     },
-    toolTip: "Spawns a football at your hand. Teleports ALL players to it continuously. Toggle off to clean up."
+    toolTip: "Spawns a football with strings to ALL players. They follow the ball with visible lines. Toggle off to clean up."
 }),
             new ButtonInfo({
               buttonText: "TP ALL Gun",
