@@ -2451,6 +2451,7 @@ function spawnMobAtPos(mobEntry: { name: string; id: number }, pos: any, rot: an
         return null;
     }
     function cleanupDeadTrackedObjects(list: any[]) {
+        if (!list) return;
         for (let i = list.length - 1; i >= 0; i--) {
             const obj = list[i];
             if (!obj || obj.isNull?.()) list.splice(i, 1);
@@ -10003,7 +10004,7 @@ new ButtonInfo({
                                 spin: 1.6 + (Math.random() * 2.6)
                             });
                         }
-                        for (let i = itemTornadoEntries.length - 1; i >= 0; i--) {
+        for (let i = (itemTornadoEntries?.length ?? 0) - 1; i >= 0; i--) {
                             const entry = itemTornadoEntries[i];
                             if (!entry || !entry.object || entry.object.isNull?.()) {
                                 itemTornadoEntries.splice(i, 1);
@@ -20100,15 +20101,15 @@ new ButtonInfo({
 
         try { updateLiveMenuThemeVisuals(); } catch(_) {}
 
-        try {
-        for (let i = lockedItems.length - 1; i >= 0; i--) {
+        
+        for (let i = (lockedItems?.length ?? 0) - 1; i >= 0; i--) {
             try {
                 const li = lockedItems[i];
                 if (!li || li.isNull()) { lockedItems.splice(i, 1); continue; }
                 getTransform(li).method("set_position").invoke(li._lockedPos);
             } catch(_) { lockedItems.splice(i, 1); }
         }
-        for (let i = spawnedGoopObjects.length - 1; i >= 0; i--) {
+        for (let i = (spawnedGoopObjects?.length ?? 0) - 1; i >= 0; i--) {
             try {
                 const entry = spawnedGoopObjects[i];
                 if (!entry || !entry.object || entry.object.isNull?.() || time >= entry.expireAt) {
@@ -20128,7 +20129,7 @@ new ButtonInfo({
                 spawnedGoopObjects.splice(i, 1);
             }
         }
-        for (let i = spazMachineEntries.length - 1; i >= 0; i--) {
+        for (let i = (spazMachineEntries?.length ?? 0) - 1; i >= 0; i--) {
             try {
                 const entry = spazMachineEntries[i];
                 if (!entry || !entry.object || entry.object.isNull?.()) {
@@ -20223,7 +20224,7 @@ new ButtonInfo({
                     }
                 } catch(_) {}
             }
-        } catch(_) {}
+        }
 
         updateInput();
 
