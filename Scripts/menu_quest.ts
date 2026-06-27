@@ -20098,9 +20098,9 @@ new ButtonInfo({
             buttonPressedColor = [r12, g12, b12, 1.0];
         }
 
-        updateLiveMenuThemeVisuals();
+        try { updateLiveMenuThemeVisuals(); } catch(_) {}
 
-        
+        try {
         for (let i = lockedItems.length - 1; i >= 0; i--) {
             try {
                 const li = lockedItems[i];
@@ -20223,7 +20223,7 @@ new ButtonInfo({
                     }
                 } catch(_) {}
             }
-        }
+        } catch(_) {}
 
         updateInput();
 
