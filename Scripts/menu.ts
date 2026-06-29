@@ -2507,6 +2507,44 @@ function acGetSpawnNullRef(): any {
     } catch(_) {}
     return acSpawnNullRef;
 }
+let acOnSpawnDelegate: any = null;
+function acGetOnSpawnDelegate(): any {
+    if (acOnSpawnDelegate) return acOnSpawnDelegate;
+    try {
+        const delegateClass = Il2Cpp.domain.assembly("Fusion.Runtime").image.class("Fusion.NetworkRunner").tryNested("NetworkObjectSpawnDelegate");
+        acOnSpawnDelegate = Il2Cpp.delegate(delegateClass, (runner: any, no: any) => {
+            try {
+                if (!no || no.isNull()) return;
+                const go = no.method("get_GameObject").invoke();
+                if (!go || go.isNull()) return;
+                const components = go.method("GetComponentsInChildren").overload("System.Type").invoke(
+                    Il2Cpp.domain.assembly("UnityEngine.CoreModule").image.class("UnityEngine.Component")
+                );
+                const count = components.method("get_Length").invoke();
+                for (let i = 0; i < count; i++) {
+                    try {
+                        const comp = components.method("get_Item").invoke(i);
+                        if (!comp || comp.isNull()) continue;
+                        const compType = comp.method("GetType").invoke();
+                        const typeName = compType.method("get_Name").invoke().toString();
+                        if (typeName === "NavMeshAgent" || typeName === "UnityEngine.AI.NavMeshAgent") {
+                            comp.method("set_enabled").overload("System.Boolean").invoke(true);
+                            console.log("[Spawn] Enabled NavMeshAgent on mob");
+                        }
+                        if (typeName.includes("MobAI") || typeName.includes("MobController") || typeName.includes("MobBehaviour") || typeName.includes("MobBrain")) {
+                            comp.method("set_enabled").overload("System.Boolean").invoke(true);
+                            console.log("[Spawn] Enabled " + typeName + " on mob");
+                        }
+                    } catch(_){}
+                }
+            } catch(_){}
+        });
+    } catch(e) {
+        console.error("[OnSpawnDelegate]", e);
+        acOnSpawnDelegate = null;
+    }
+    return acOnSpawnDelegate;
+}
 function spawnMobAtPos(mobEntry: { name: string; id: number }, pos: any, rot: any): any {
     try {
         acEnableMobValidatorBypass();
@@ -2538,6 +2576,7 @@ function spawnMobAtPos(mobEntry: { name: string; id: number }, pos: any, rot: an
             return false;
         }
         const delegate = acGetBeforeMobSpawnDelegate();
+        const onSpawnDelegate = acGetOnSpawnDelegate();
         const nullRef = acGetSpawnNullRef();
         if (!nullRef || nullRef.isNull?.()) {
             console.log("[Spawn] " + mobEntry.name + " failed: nullRef is null");
@@ -2550,11 +2589,12 @@ function spawnMobAtPos(mobEntry: { name: string; id: number }, pos: any, rot: an
             console.log("[Spawn] " + mobEntry.name + " failed: PrefabGenerator._instance is null");
             return false;
         }
+        const spawnDelegate = onSpawnDelegate || nullRef;
         try {
             pgClass.method("SpawnMobAsyncInternal", 6).overload(
                 "AnimalCompany.MobID", "UnityEngine.Vector3", "UnityEngine.Quaternion",
                 "Fusion.NetworkRunner.OnBeforeSpawned", "Fusion.NetworkObjectSpawnDelegate", "System.String"
-            ).invoke(mobId, pos, rot || identityQuaternion, delegate, nullRef, Il2Cpp.string("mod"));
+            ).invoke(mobId, pos, rot || identityQuaternion, delegate, spawnDelegate, Il2Cpp.string("mod"));
         } catch(innerErr) {
             const errStr = String(innerErr);
             if (errStr.includes("access violation")) {
@@ -2563,7 +2603,7 @@ function spawnMobAtPos(mobEntry: { name: string; id: number }, pos: any, rot: an
                     pgClass.method("SpawnMobAsyncInternal", 6).overload(
                         "AnimalCompany.MobID", "UnityEngine.Vector3", "UnityEngine.Quaternion",
                         "Fusion.NetworkRunner.OnBeforeSpawned", "Fusion.NetworkObjectSpawnDelegate", "System.String"
-                    ).invoke(mobId, pos, rot || identityQuaternion, null, nullRef, Il2Cpp.string("mod"));
+                    ).invoke(mobId, pos, rot || identityQuaternion, null, spawnDelegate, Il2Cpp.string("mod"));
                 } catch(innerErr2) {
                     console.log("[Spawn] " + mobEntry.name + " failed (retry): " + innerErr2);
                     return false;
