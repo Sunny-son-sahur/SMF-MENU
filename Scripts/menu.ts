@@ -2539,12 +2539,40 @@ function spawnMobAtPos(mobEntry: { name: string; id: number }, pos: any, rot: an
         }
         const delegate = acGetBeforeMobSpawnDelegate();
         const nullRef = acGetSpawnNullRef();
+        if (!nullRef || nullRef.isNull?.()) {
+            console.log("[Spawn] " + mobEntry.name + " failed: nullRef is null");
+            return false;
+        }
         const acImg = acAnimalCompanyImage();
         const pgClass = acImg.class("AnimalCompany.PrefabGenerator");
-        pgClass.method("SpawnMobAsyncInternal", 6).overload(
-            "AnimalCompany.MobID", "UnityEngine.Vector3", "UnityEngine.Quaternion",
-            "Fusion.NetworkRunner.OnBeforeSpawned", "Fusion.NetworkObjectSpawnDelegate", "System.String"
-        ).invoke(mobId, pos, rot || identityQuaternion, delegate, nullRef, Il2Cpp.string("mod"));
+        const inst = pgClass.field("_instance").value;
+        if (!inst || inst.isNull()) {
+            console.log("[Spawn] " + mobEntry.name + " failed: PrefabGenerator._instance is null");
+            return false;
+        }
+        try {
+            pgClass.method("SpawnMobAsyncInternal", 6).overload(
+                "AnimalCompany.MobID", "UnityEngine.Vector3", "UnityEngine.Quaternion",
+                "Fusion.NetworkRunner.OnBeforeSpawned", "Fusion.NetworkObjectSpawnDelegate", "System.String"
+            ).invoke(mobId, pos, rot || identityQuaternion, delegate, nullRef, Il2Cpp.string("mod"));
+        } catch(innerErr) {
+            const errStr = String(innerErr);
+            if (errStr.includes("access violation")) {
+                console.log("[Spawn] " + mobEntry.name + " failed (access violation on method call) — trying without delegate...");
+                try {
+                    pgClass.method("SpawnMobAsyncInternal", 6).overload(
+                        "AnimalCompany.MobID", "UnityEngine.Vector3", "UnityEngine.Quaternion",
+                        "Fusion.NetworkRunner.OnBeforeSpawned", "Fusion.NetworkObjectSpawnDelegate", "System.String"
+                    ).invoke(mobId, pos, rot || identityQuaternion, null, nullRef, Il2Cpp.string("mod"));
+                } catch(innerErr2) {
+                    console.log("[Spawn] " + mobEntry.name + " failed (retry): " + innerErr2);
+                    return false;
+                }
+            } else {
+                console.log("[Spawn] " + mobEntry.name + " failed: " + innerErr);
+                return false;
+            }
+        }
         console.log("[Spawn] " + mobEntry.name + " OK");
         return true;
     } catch(e) {
@@ -2554,9 +2582,16 @@ function spawnMobAtPos(mobEntry: { name: string; id: number }, pos: any, rot: an
 }
     function spawnNetworkPrefab(prefabName: string, pos: any, rot: any) {
         try {
-            const runner = PrefabGen.field("_instance").value.method("get_runner").invoke();
+            const inst = PrefabGen.field("_instance").value;
+            if (!inst || inst.isNull()) return null;
+            const runner = inst.method("get_runner").invoke();
             if (!runner || runner.isNull()) return null;
-            const sources = runner.field("_config").value.field("PrefabTable").value.field("_sources").value;
+            const config = runner.field("_config").value;
+            if (!config || config.isNull()) return null;
+            const table = config.field("PrefabTable").value;
+            if (!table || table.isNull()) return null;
+            const sources = table.field("_sources").value;
+            if (!sources || sources.isNull()) return null;
             const count = sources.method("get_Count").invoke();
             for (let i = 0; i < count; i++) {
                 try {
