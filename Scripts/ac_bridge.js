@@ -3829,11 +3829,8 @@ var Il2Cpp;
 /// <reference path="./structs/value-type.ts">/>
 globalThis.Il2Cpp = Il2Cpp;
 //# sourceMappingURL=index.js.map
-// DUMPED BY AC WATCHER BOT
+// DUMPED BY N5, credits to juelz for original version
 // Unity 6000.3.12f1 | Build 23993290
-
-// Symbols Pulled By N5
-// Unity 6000.3.12f1 | Build 23649362
 
 Il2Cpp.$config.exports = {
 	il2cpp_init: () => Il2Cpp.module.findExportByName("MNXFFoVVXrf"),

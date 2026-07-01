@@ -434,6 +434,12 @@ var mobIDs: { name: string; id: number }[] = [
     { name: "YangWorm",            id: 45 },
     { name: "ArmstrongSpace",      id: 46 },
     { name: "Smiley",              id: 47 },
+    { name: "MurderRabbit",        id: 48 },
+    { name: "MurderBunny",         id: 49 },
+    { name: "DeltaUFO",            id: 50 },
+    { name: "BetaUFO",             id: 51 },
+    { name: "AlphaUFO",            id: 52 },
+    { name: "GlitchedGorilla",     id: 53 },
 ];
 
 var prefabIDs: string[] = [
@@ -1675,17 +1681,50 @@ let footballStrings: Map<string, any> = new Map();
     const NetworkRunner = Il2Cpp.domain.assembly("Fusion.Runtime").image.class("Fusion.NetworkRunner");
     const NULL = Il2Cpp.reference(Il2Cpp.domain.assembly("mscorlib").image.class("System.Object").alloc());
 
-    
+
+    let ItemSpawnSourceClass: any = null;
+    try { ItemSpawnSourceClass = AssemblyCSharp.class("AnimalCompany.ItemSpawnSource"); } catch(_) {}
+    let itemSpawnSourceDefault: any = null;
+    function getItemSpawnSource(): any {
+        if (itemSpawnSourceDefault && !itemSpawnSourceDefault.isNull?.()) return itemSpawnSourceDefault;
+        try {
+            if (ItemSpawnSourceClass) {
+                const alloc = ItemSpawnSourceClass.alloc();
+                alloc.field("value__").value = 0;
+                itemSpawnSourceDefault = alloc;
+                return itemSpawnSourceDefault;
+            }
+        } catch(_) {}
+        return NULL;
+    }
     function spawnItemAtPos(bareID: string, pos: any, rot: any): any {
         try {
+            const src = getItemSpawnSource();
+            const rotQuat = (rot && !rot.isNull?.()) ? rot : identityQuaternion;
+            const trySpawnItemAsync5 = (name: string): any => {
+                try {
+                    return PrefabGen.method("SpawnItemAsync", 5).overload("System.String", "UnityEngine.Vector3", "UnityEngine.Quaternion", "Fusion.NetworkObjectSpawnDelegate", "AnimalCompany.ItemSpawnSource").invoke(Il2Cpp.string(name), pos, rotQuat, NULL, src);
+                } catch(_) { return null; }
+            };
+            let r = trySpawnItemAsync5(bareID);
+            if (r && !r.isNull()) return r;
+            r = trySpawnItemAsync5("item_prefab/" + bareID);
+            if (r && !r.isNull()) return r;
             const prefab = PrefabGen.method("GetItemPrefab", 1).invoke(Il2Cpp.string(bareID));
             if (prefab && !prefab.isNull()) {
-                const result = PrefabGen.method("SpawnItem", 4).invoke(prefab, pos, rot, NULL);
-                if (result && !result.isNull()) return result;
+                try {
+                    r = PrefabGen.method("SpawnItemAsync", 5).overload("UnityEngine.GameObject", "UnityEngine.Vector3", "UnityEngine.Quaternion", "Fusion.NetworkObjectSpawnDelegate", "AnimalCompany.ItemSpawnSource").invoke(prefab, pos, rotQuat, NULL, src);
+                    if (r && !r.isNull()) return r;
+                } catch(_) {}
+                try {
+                    r = PrefabGen.method("SpawnItem", 4).invoke(prefab, pos, rotQuat, NULL);
+                    if (r && !r.isNull()) return r;
+                } catch(_) {}
             }
-            const result2 = PrefabGen.method("SpawnItem", 4).invoke(Il2Cpp.string(bareID), pos, rot, NULL);
-            if (result2 && !result2.isNull()) return result2;
-            return PrefabGen.method("SpawnItem", 4).invoke(Il2Cpp.string("item_prefab/" + bareID), pos, rot, NULL);
+            try { r = PrefabGen.method("SpawnItem", 4).invoke(Il2Cpp.string(bareID), pos, rotQuat, NULL); if (r && !r.isNull()) return r; } catch(_) {}
+            try { r = PrefabGen.method("SpawnItem", 4).invoke(Il2Cpp.string("item_prefab/" + bareID), pos, rotQuat, NULL); if (r && !r.isNull()) return r; } catch(_) {}
+            console.error("[spawnItemAtPos] all methods failed for: " + bareID);
+            return null;
         } catch(e) {
             console.error("[spawnItemAtPos] " + bareID + ": " + e);
             return null;
@@ -2591,16 +2630,16 @@ function spawnMobAtPos(mobEntry: { name: string; id: number }, pos: any, rot: an
         }
         const spawnDelegate = onSpawnDelegate || nullRef;
         try {
-            pgClass.method("SpawnMobAsyncInternal", 6).overload(
+            pgClass.method("SpawnMobAsync", 6).overload(
                 "AnimalCompany.MobID", "UnityEngine.Vector3", "UnityEngine.Quaternion",
                 "Fusion.NetworkRunner.OnBeforeSpawned", "Fusion.NetworkObjectSpawnDelegate", "System.String"
             ).invoke(mobId, pos, rot || identityQuaternion, delegate, spawnDelegate, Il2Cpp.string("mod"));
         } catch(innerErr) {
             const errStr = String(innerErr);
             if (errStr.includes("access violation")) {
-                console.log("[Spawn] " + mobEntry.name + " failed (access violation on method call) — trying without delegate...");
+                console.log("[Spawn] " + mobEntry.name + " failed (access violation) — retrying without delegate...");
                 try {
-                    pgClass.method("SpawnMobAsyncInternal", 6).overload(
+                    pgClass.method("SpawnMobAsync", 6).overload(
                         "AnimalCompany.MobID", "UnityEngine.Vector3", "UnityEngine.Quaternion",
                         "Fusion.NetworkRunner.OnBeforeSpawned", "Fusion.NetworkObjectSpawnDelegate", "System.String"
                     ).invoke(mobId, pos, rot || identityQuaternion, null, spawnDelegate, Il2Cpp.string("mod"));
@@ -8989,6 +9028,32 @@ new ButtonInfo({
             },
             isTogglable: true,
             toolTip: "Spawns one mob at your right hand per grip + B press."
+        }),
+
+        new ButtonInfo({
+            buttonText: "Give Masterclient",
+            isTogglable: false,
+            method: () => {
+                try {
+                    let runner = null;
+                    try {
+                        const pgInst = PrefabGen.field("_instance").value;
+                        if (pgInst && !pgInst.isNull()) runner = pgInst.method("get_runner").invoke();
+                    } catch(_) {}
+                    if (!runner || runner.isNull?.()) {
+                        try {
+                            const sfx = SFXManager.field("_instance").value;
+                            if (sfx && !sfx.isNull()) runner = sfx.method("get__currentRunner").invoke();
+                        } catch(_) {}
+                    }
+                    if (!runner || runner.isNull?.()) { sendNotification("Runner is null", false); return; }
+                    const localRef = runner.method("get_LocalPlayer").invoke();
+                    if (!localRef) { sendNotification("LocalPlayer ref null", false); return; }
+                    runner.method("SetMasterClient").invoke(localRef);
+                    sendNotification("You are now the master client!", false);
+                } catch(e) { sendNotification("Masterclient: " + e, false); console.error("[Masterclient]:", e); }
+            },
+            toolTip: "Promotes you to master client / host using NetworkRunner.SetMasterClient."
         }),
 
         new ButtonInfo({
@@ -20432,7 +20497,7 @@ new ButtonInfo({
                         let respawned = null;
                         try {
                             if (!mobSpawnAsyncBroken) {
-                                respawned = PrefabGen.method("SpawnMobAsyncInternal", 6).invoke(
+                                respawned = PrefabGen.method("SpawnMobAsync", 6).invoke(
                                     entry.mobEntry.id, entry.pos, entry.rot, NULL, NULL, Il2Cpp.string("menu")
                                 );
                             }

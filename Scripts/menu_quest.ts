@@ -434,6 +434,12 @@ var mobIDs: { name: string; id: number }[] = [
     { name: "YangWorm",            id: 45 },
     { name: "ArmstrongSpace",      id: 46 },
     { name: "Smiley",              id: 47 },
+    { name: "MurderRabbit",        id: 48 },
+    { name: "MurderBunny",         id: 49 },
+    { name: "DeltaUFO",            id: 50 },
+    { name: "BetaUFO",             id: 51 },
+    { name: "AlphaUFO",            id: 52 },
+    { name: "GlitchedGorilla",     id: 53 },
 ];
 
 var prefabIDs: string[] = [
@@ -1098,6 +1104,85 @@ let multiBuyHookGuard = false;
 let playerNameTagEntries = new Map<string, any>();
 let playerEspEntries = new Map<string, any>();
 
+let godModeEnabled = false;
+let infiniteStaminaEnabled = false;
+let noHungerThirstEnabled = false;
+let noclipEnabled = false;
+let ghostModeEnabled = false;
+let oneHitKillEnabled = false;
+let infiniteBagEnabled = false;
+let teleportLootEnabled = false;
+let crashLobbyEnabled = false;
+let bypassSellLimitEnabled = false;
+let spoofPhotonIdEnabled = false;
+let noGravityEnabled = false;
+let lockHeldItemEnabled = false;
+let speedHackEnabled = false;
+let speedHackMultiplier = 2.0;
+let savedPosition: any = null;
+let minigunRateValue = 1;
+let minigunBurstValue = 1;
+let minigunSpreadValue = 0;
+let repeatVoiceEnabled = false;
+let repeatVoiceTarget: any = null;
+let mimicSpamEnabled = false;
+let swarmSpamEnabled = false;
+let goopfishSpamEnabled = false;
+let muffleVoiceAllEnabled = false;
+let squeakyVoiceAllEnabled = false;
+let radioactiveAllEnabled = false;
+let shakeAllEnabled = false;
+let removeGravityAllEnabled = false;
+let blindGunEnabled = false;
+let pushGunEnabled = false;
+let banGunEnabled = false;
+let rpcShakeAllEnabled = false;
+let rpcColorPurpleEnabled = false;
+let rpcColorPinkEnabled = false;
+let rpcColorGreenEnabled = false;
+let rpcColorYellowEnabled = false;
+let rpcLoopKillEnabled = false;
+let rpcLoopStunEnabled = false;
+let rpcLoopBounceEnabled = false;
+let rpcLoopHitEnabled = false;
+let rpcLoopRagdollEnabled = false;
+let rpcLoopRainbowEnabled = false;
+let rpcLoopChaosEnabled = false;
+let rpcLoopWantedEnabled = false;
+let rpcLoopKillMeEnabled = false;
+let rpcLoopFakeDeathEnabled = false;
+let rpcLoopVfxEnabled = false;
+let rpcLoopInfMoneyEnabled = false;
+let rpcGunKillEnabled = false;
+let rpcGunReviveEnabled = false;
+let rpcGunLaunchEnabled = false;
+let rpcGunStunEnabled = false;
+let rpcGunFreezeEnabled = false;
+let rpcGunColorEnabled = false;
+let rpcGunScaleEnabled = false;
+let rpcGunBuffSpeedEnabled = false;
+let rpcGunAntiGravEnabled = false;
+let rpcGunVoidEnabled = false;
+let rpcGunHit50Enabled = false;
+let wlInvisibleGunEnabled = false;
+let wlMoneyGunEnabled = false;
+let wlStinkyGunEnabled = false;
+let wlSpeedGunEnabled = false;
+let wlColorGunEnabled = false;
+let wlDisintegrateGunEnabled = false;
+let wlTpGunEnabled = false;
+let wlLaunchGunEnabled = false;
+let wlHitGunEnabled = false;
+let wlFreezeGunEnabled = false;
+let wlReviveGunEnabled = false;
+let wlVfxGunEnabled = false;
+let wlVoidGunEnabled = false;
+let wlHealGunEnabled = false;
+let wlRainbowLoopEnabled = false;
+let wlGiveAllBuffEnabled = false;
+let wlTpAll2MeEnabled = false;
+let itemRainEnabled = false;
+
 let prefabIndex: number = 0;
 function getSelectedPrefabID(): string {
     try {
@@ -1484,16 +1569,52 @@ let footballStrings: Map<string, any> = new Map();
     const NULL = Il2Cpp.reference(Il2Cpp.domain.assembly("mscorlib").image.class("System.Object").alloc());
 
     
+    let ItemSpawnSourceClass: any = null;
+    try { ItemSpawnSourceClass = AssemblyCSharp.class("AnimalCompany.ItemSpawnSource"); } catch(_) {}
+    let itemSpawnSourceDefault: any = null;
+    function getItemSpawnSource(): any {
+        if (itemSpawnSourceDefault && !itemSpawnSourceDefault.isNull?.()) return itemSpawnSourceDefault;
+        try {
+            if (ItemSpawnSourceClass) {
+                const vals = ItemSpawnSourceClass.field("value__");
+                if (vals) {
+                    const alloc = ItemSpawnSourceClass.alloc();
+                    alloc.field("value__").value = 0;
+                    itemSpawnSourceDefault = alloc;
+                    return itemSpawnSourceDefault;
+                }
+            }
+        } catch(_) {}
+        return NULL;
+    }
     function spawnItemAtPos(bareID: string, pos: any, rot: any): any {
         try {
+            const src = getItemSpawnSource();
+            const rotQuat = (rot && !rot.isNull?.()) ? rot : identityQuaternion;
+            const trySpawnItemAsync5 = (name: string): any => {
+                try {
+                    return PrefabGen.method("SpawnItemAsync", 5).overload("System.String", "UnityEngine.Vector3", "UnityEngine.Quaternion", "Fusion.NetworkObjectSpawnDelegate", "AnimalCompany.ItemSpawnSource").invoke(Il2Cpp.string(name), pos, rotQuat, NULL, src);
+                } catch(_) { return null; }
+            };
+            let r = trySpawnItemAsync5(bareID);
+            if (r && !r.isNull()) return r;
+            r = trySpawnItemAsync5("item_prefab/" + bareID);
+            if (r && !r.isNull()) return r;
             const prefab = PrefabGen.method("GetItemPrefab", 1).invoke(Il2Cpp.string(bareID));
             if (prefab && !prefab.isNull()) {
-                const result = PrefabGen.method("SpawnItem", 4).invoke(prefab, pos, rot, NULL);
-                if (result && !result.isNull()) return result;
+                try {
+                    r = PrefabGen.method("SpawnItemAsync", 5).overload("UnityEngine.GameObject", "UnityEngine.Vector3", "UnityEngine.Quaternion", "Fusion.NetworkObjectSpawnDelegate", "AnimalCompany.ItemSpawnSource").invoke(prefab, pos, rotQuat, NULL, src);
+                    if (r && !r.isNull()) return r;
+                } catch(_) {}
+                try {
+                    r = PrefabGen.method("SpawnItem", 4).invoke(prefab, pos, rotQuat, NULL);
+                    if (r && !r.isNull()) return r;
+                } catch(_) {}
             }
-            const result2 = PrefabGen.method("SpawnItem", 4).invoke(Il2Cpp.string(bareID), pos, rot, NULL);
-            if (result2 && !result2.isNull()) return result2;
-            return PrefabGen.method("SpawnItem", 4).invoke(Il2Cpp.string("item_prefab/" + bareID), pos, rot, NULL);
+            try { r = PrefabGen.method("SpawnItem", 4).invoke(Il2Cpp.string(bareID), pos, rotQuat, NULL); if (r && !r.isNull()) return r; } catch(_) {}
+            try { r = PrefabGen.method("SpawnItem", 4).invoke(Il2Cpp.string("item_prefab/" + bareID), pos, rotQuat, NULL); if (r && !r.isNull()) return r; } catch(_) {}
+            console.error("[spawnItemAtPos] all methods failed for: " + bareID);
+            return null;
         } catch(e) {
             console.error("[spawnItemAtPos] " + bareID + ": " + e);
             return null;
@@ -2398,16 +2519,16 @@ function spawnMobAtPos(mobEntry: { name: string; id: number }, pos: any, rot: an
         }
         const spawnDelegate = onSpawnDelegate || nullRef;
         try {
-            pgClass.method("SpawnMobAsyncInternal", 6).overload(
+            pgClass.method("SpawnMobAsync", 6).overload(
                 "AnimalCompany.MobID", "UnityEngine.Vector3", "UnityEngine.Quaternion",
                 "Fusion.NetworkRunner.OnBeforeSpawned", "Fusion.NetworkObjectSpawnDelegate", "System.String"
             ).invoke(mobId, pos, rot || identityQuaternion, delegate, spawnDelegate, Il2Cpp.string("mod"));
         } catch(innerErr) {
             const errStr = String(innerErr);
             if (errStr.includes("access violation")) {
-                console.log("[Spawn] " + mobEntry.name + " failed (access violation on method call) — trying without delegate...");
+                console.log("[Spawn] " + mobEntry.name + " failed (access violation) — retrying without delegate...");
                 try {
-                    pgClass.method("SpawnMobAsyncInternal", 6).overload(
+                    pgClass.method("SpawnMobAsync", 6).overload(
                         "AnimalCompany.MobID", "UnityEngine.Vector3", "UnityEngine.Quaternion",
                         "Fusion.NetworkRunner.OnBeforeSpawned", "Fusion.NetworkObjectSpawnDelegate", "System.String"
                     ).invoke(mobId, pos, rot || identityQuaternion, null, spawnDelegate, Il2Cpp.string("mod"));
@@ -6867,6 +6988,1149 @@ function getScriptDir(): string {
             insertButtonAfter(mainButtons, makeCategoryButton("Galaxy Skinning", 36, "Player and item skinning with galaxy colors."), "Fly Gun");
             insertButtonAfter(mainButtons, makeCategoryButton("Jelly Mods", 37, "Jelly mesh distortion effects for objects and players."), "Galaxy Skinning");
             insertButtonAfter(mainButtons, makeCategoryButton("Name Changer", 39, "Custom name changer with keyboard and RPC_SetPlayerName."), "Jelly Mods");
+
+            // ===== PAGE 1: MAIN / MINIGUN (cat 40) =====
+            buttons[40] = [
+                new ButtonInfo({ buttonText: "Exit Minigun", method: () => { currentCategory = 0; currentPage = 0; }, isTogglable: false, toolTip: "Returns to main menu." }),
+                new ButtonInfo({
+                    buttonText: "Minigun: Random Items",
+                    enableMethod: () => { sendNotification("Minigun: Random Items ON", false); },
+                    disableMethod: () => { sendNotification("Minigun: Random Items OFF", false); },
+                    method: () => {},
+                    isTogglable: true,
+                    toolTip: "Spawns random items where minigun fires."
+                }),
+                new ButtonInfo({
+                    buttonText: "Minigun: Rare Items",
+                    enableMethod: () => { sendNotification("Minigun: Rare Items ON", false); },
+                    disableMethod: () => { sendNotification("Minigun: Rare Items OFF", false); },
+                    method: () => {},
+                    isTogglable: true,
+                    toolTip: "Spawns rare items where minigun fires."
+                }),
+                new ButtonInfo({
+                    buttonText: "Minigun Rate +",
+                    method: () => { minigunRateValue = Math.max(1, minigunRateValue + 1); sendNotification("Minigun Rate: " + minigunRateValue, false); },
+                    isTogglable: false,
+                    toolTip: "Increases minigun fire rate."
+                }),
+                new ButtonInfo({
+                    buttonText: "Minigun Rate -",
+                    method: () => { minigunRateValue = Math.max(1, minigunRateValue - 1); sendNotification("Minigun Rate: " + minigunRateValue, false); },
+                    isTogglable: false,
+                    toolTip: "Decreases minigun fire rate."
+                }),
+                new ButtonInfo({
+                    buttonText: "Minigun Burst +",
+                    method: () => { minigunBurstValue++; sendNotification("Minigun Burst: " + minigunBurstValue, false); },
+                    isTogglable: false,
+                    toolTip: "Increases minigun burst count."
+                }),
+                new ButtonInfo({
+                    buttonText: "Minigun Burst -",
+                    method: () => { minigunBurstValue = Math.max(1, minigunBurstValue - 1); sendNotification("Minigun Burst: " + minigunBurstValue, false); },
+                    isTogglable: false,
+                    toolTip: "Decreases minigun burst count."
+                }),
+                new ButtonInfo({
+                    buttonText: "Minigun Spread +",
+                    method: () => { minigunSpreadValue += 0.05; sendNotification("Minigun Spread: " + minigunSpreadValue.toFixed(2), false); },
+                    isTogglable: false,
+                    toolTip: "Increases minigun spread."
+                }),
+                new ButtonInfo({
+                    buttonText: "Minigun Spread -",
+                    method: () => { minigunSpreadValue = Math.max(0, minigunSpreadValue - 0.05); sendNotification("Minigun Spread: " + minigunSpreadValue.toFixed(2), false); },
+                    isTogglable: false,
+                    toolTip: "Decreases minigun spread."
+                }),
+                new ButtonInfo({
+                    buttonText: "Add Money Tier",
+                    method: () => {
+                        try {
+                            const localPlayer = NetPlayer.method("get_localPlayer").invoke();
+                            if (!localPlayer || localPlayer.isNull()) return;
+                            const amounts = [100, 500, 1000, 5000, 10000, 50000, 100000, 1000000];
+                            for (let i = 0; i < amounts.length; i++) {
+                                setTimeout(() => {
+                                    try {
+                                        localPlayer.method("RPC_AddMoney").invoke(amounts[i]);
+                                    } catch(_) {}
+                                }, i * 200);
+                            }
+                            sendNotification("Money tiers sent!", false);
+                        } catch(e) { sendNotification("Money: " + e, false); }
+                    },
+                    isTogglable: false,
+                    toolTip: "Sends multiple money amounts in sequence."
+                }),
+                new ButtonInfo({
+                    buttonText: "Tsar Bomba",
+                    method: () => {
+                        try {
+                            const localPlayer = NetPlayer.method("get_localPlayer").invoke();
+                            if (!localPlayer || localPlayer.isNull()) return;
+                            const pos = getTransform(localPlayer).method("get_position").invoke();
+                            const spawnPos = [pos.field("x").value, pos.field("y").value + 2, pos.field("z").value];
+                            for (let i = 0; i < 20; i++) {
+                                setTimeout(() => {
+                                    try {
+                                        spawnItemAtPos("item_grenade_gold", [
+                                            spawnPos[0] + (Math.random() - 0.5) * 10,
+                                            spawnPos[1] + (Math.random() - 0.5) * 10,
+                                            spawnPos[2] + (Math.random() - 0.5) * 10
+                                        ], identityQuaternion);
+                                    } catch(_) {}
+                                }, i * 100);
+                            }
+                            sendNotification("TSAR BOMBA!", false);
+                        } catch(e) { sendNotification("Tsar: " + e, false); }
+                    },
+                    isTogglable: false,
+                    toolTip: "Drops 20 gold grenades in a massive explosion."
+                }),
+                new ButtonInfo({
+                    buttonText: "Spawn Truss",
+                    method: () => {
+                        try {
+                            const localPlayer = NetPlayer.method("get_localPlayer").invoke();
+                            if (!localPlayer || localPlayer.isNull()) return;
+                            const pos = getTransform(localPlayer).method("get_position").invoke();
+                            for (let i = 0; i < 10; i++) {
+                                spawnItemAtPos("item_truss", [pos.field("x").value, pos.field("y").value + i * 3, pos.field("z").value], identityQuaternion);
+                            }
+                            sendNotification("Spawned 10 trusses!", false);
+                        } catch(e) { sendNotification("Truss: " + e, false); }
+                    },
+                    isTogglable: false,
+                    toolTip: "Spawns a tower of 10 truss items."
+                }),
+                new ButtonInfo({
+                    buttonText: "Item Rain",
+                    enableMethod: () => { itemRainEnabled = true; itemRainDelay = 0; sendNotification("Item Rain ON", false); },
+                    disableMethod: () => { itemRainEnabled = false; sendNotification("Item Rain OFF", false); },
+                    method: () => {},
+                    isTogglable: true,
+                    toolTip: "Continuously rains random items from above."
+                }),
+            ];
+
+            // ===== PAGE 2: SPAWNING (cat 41) =====
+            buttons[41] = [
+                new ButtonInfo({ buttonText: "Exit Spawning", method: () => { currentCategory = 0; currentPage = 0; }, isTogglable: false, toolTip: "Returns to main menu." }),
+                new ButtonInfo({
+                    buttonText: "Spawn All OG",
+                    method: () => {
+                        try {
+                            const pos = GTPlayer ? getTransform(GTPlayer).method("get_position").invoke() : zeroVector;
+                            const ogItems = ["item_revolver","item_shotgun","item_rpg","item_grenade","item_flashbang","item_landmine","item_dynamite","item_hookshot","item_crowbar","item_axe","item_pickaxe","item_shovel","item_spear_candy_cane","item_baseball_bat","item_hatchet"];
+                            for (let i = 0; i < ogItems.length; i++) {
+                                setTimeout(() => { spawnItemAtPos(ogItems[i], [pos.field("x").value + (Math.random()-0.5)*3, pos.field("y").value + i*0.5, pos.field("z").value + (Math.random()-0.5)*3], identityQuaternion); }, i * 100);
+                            }
+                            sendNotification("Spawned all OG items!", false);
+                        } catch(e) { sendNotification("OG: " + e, false); }
+                    },
+                    isTogglable: false,
+                    toolTip: "Spawns all original game items."
+                }),
+                new ButtonInfo({
+                    buttonText: "Spawn All Golden",
+                    method: () => {
+                        try {
+                            const pos = GTPlayer ? getTransform(GTPlayer).method("get_position").invoke() : zeroVector;
+                            const golden = ["item_revolver_gold","item_grenade_gold","item_ukulele_gold","item_stellarsword_gold","item_pickaxe_cny"];
+                            for (let i = 0; i < golden.length; i++) {
+                                setTimeout(() => { spawnItemAtPos(golden[i], [pos.field("x").value + (Math.random()-0.5)*3, pos.field("y").value + i*0.5, pos.field("z").value + (Math.random()-0.5)*3], identityQuaternion); }, i * 100);
+                            }
+                            sendNotification("Spawned all golden items!", false);
+                        } catch(e) { sendNotification("Golden: " + e, false); }
+                    },
+                    isTogglable: false,
+                    toolTip: "Spawns all golden/rare items."
+                }),
+                new ButtonInfo({
+                    buttonText: "Spawn All Steampunk",
+                    method: () => {
+                        try {
+                            const pos = GTPlayer ? getTransform(GTPlayer).method("get_position").invoke() : zeroVector;
+                            const sp = ["item_steampunk_clip","item_steampunk_coils_big","item_steampunk_coils_small","item_steampunk_gear_big","item_steampunk_gear_open_big","item_steampunk_gear_open_small","item_steampunk_gear_small","item_steampunk_gear_spikes_big","item_steampunk_gear_spikes_small","item_steampunk_gear_wheels","item_steampunk_lamp","item_steampunk_lightbulb","item_steampunk_redgreen_hand","item_steampunk_scaffolding","item_steampunk_smokestack","item_steampunk_wings"];
+                            for (let i = 0; i < sp.length; i++) {
+                                setTimeout(() => { spawnItemAtPos(sp[i], [pos.field("x").value + (Math.random()-0.5)*3, pos.field("y").value + i*0.3, pos.field("z").value + (Math.random()-0.5)*3], identityQuaternion); }, i * 80);
+                            }
+                            sendNotification("Spawned all steampunk items!", false);
+                        } catch(e) { sendNotification("Steampunk: " + e, false); }
+                    },
+                    isTogglable: false,
+                    toolTip: "Spawns all steampunk items."
+                }),
+                new ButtonInfo({
+                    buttonText: "Spawn All UFOs",
+                    method: () => {
+                        try {
+                            const runner = SFXManager.method("get_instance").invoke()?.field("_runner").value;
+                            if (!runner || runner.isNull()) { sendNotification("No runner", false); return; }
+                            const localPlayer = NetPlayer.method("get_localPlayer").invoke();
+                            if (!localPlayer || localPlayer.isNull()) return;
+                            const pos = getTransform(localPlayer).method("get_position").invoke();
+                            const ufoMobs = [50, 51, 52];
+                            for (let i = 0; i < ufoMobs.length; i++) {
+                                setTimeout(() => {
+                                    try { PrefabGen.method("SpawnMobAsync", 6).invoke(ufoMobs[i], [pos.field("x").value + i*5, pos.field("y").value + 5, pos.field("z").value], identityQuaternion, null, runner, true); } catch(_) {}
+                                }, i * 500);
+                            }
+                            sendNotification("Spawned all UFOs!", false);
+                        } catch(e) { sendNotification("UFOs: " + e, false); }
+                    },
+                    isTogglable: false,
+                    toolTip: "Spawns Delta, Beta, and Alpha UFO mobs."
+                }),
+                new ButtonInfo({
+                    buttonText: "Spawn All Tapes",
+                    method: () => {
+                        try {
+                            const pos = GTPlayer ? getTransform(GTPlayer).method("get_position").invoke() : zeroVector;
+                            const tapes = ["item_quest_vhs_asteroids","item_quest_vhs_derelictvessel","item_quest_vhs_wormhole"];
+                            for (let i = 0; i < tapes.length; i++) {
+                                setTimeout(() => { spawnItemAtPos(tapes[i], [pos.field("x").value + i*2, pos.field("y").value + 1, pos.field("z").value], identityQuaternion); }, i * 200);
+                            }
+                            sendNotification("Spawned all VHS tapes!", false);
+                        } catch(e) { sendNotification("Tapes: " + e, false); }
+                    },
+                    isTogglable: false,
+                    toolTip: "Spawns all VHS tape quest items."
+                }),
+                new ButtonInfo({
+                    buttonText: "Spawn All Modules",
+                    method: () => {
+                        try {
+                            const pos = GTPlayer ? getTransform(GTPlayer).method("get_position").invoke() : zeroVector;
+                            const mods = ["item_module_blast_1","item_module_blast_2","item_module_blast_3","item_module_boost_1","item_module_boost_2","item_module_boost_3","item_module_gravity_1","item_module_minigun_1","item_module_minigun_2","item_module_minigun_3","item_module_stasis_1"];
+                            for (let i = 0; i < mods.length; i++) {
+                                setTimeout(() => { spawnItemAtPos(mods[i], [pos.field("x").value + (Math.random()-0.5)*4, pos.field("y").value + i*0.5, pos.field("z").value + (Math.random()-0.5)*4], identityQuaternion); }, i * 100);
+                            }
+                            sendNotification("Spawned all modules!", false);
+                        } catch(e) { sendNotification("Modules: " + e, false); }
+                    },
+                    isTogglable: false,
+                    toolTip: "Spawns all module items."
+                }),
+                new ButtonInfo({
+                    buttonText: "Spawn Suitcases",
+                    method: () => {
+                        try {
+                            const pos = GTPlayer ? getTransform(GTPlayer).method("get_position").invoke() : zeroVector;
+                            for (let i = 0; i < 5; i++) {
+                                setTimeout(() => { spawnItemAtPos("item_pelican_case", [pos.field("x").value + (Math.random()-0.5)*4, pos.field("y").value + i*0.5, pos.field("z").value + (Math.random()-0.5)*4], identityQuaternion); }, i * 100);
+                            }
+                            sendNotification("Spawned 5 suitcases!", false);
+                        } catch(e) { sendNotification("Suitcases: " + e, false); }
+                    },
+                    isTogglable: false,
+                    toolTip: "Spawns 5 pelican cases."
+                }),
+                new ButtonInfo({
+                    buttonText: "Spawn Eggs",
+                    method: () => {
+                        try {
+                            const pos = GTPlayer ? getTransform(GTPlayer).method("get_position").invoke() : zeroVector;
+                            for (let i = 0; i < 10; i++) {
+                                setTimeout(() => { spawnItemAtPos("item_egg", [pos.field("x").value + (Math.random()-0.5)*5, pos.field("y").value + 2 + Math.random()*3, pos.field("z").value + (Math.random()-0.5)*5], identityQuaternion); }, i * 80);
+                            }
+                            sendNotification("Spawned 10 eggs!", false);
+                        } catch(e) { sendNotification("Eggs: " + e, false); }
+                    },
+                    isTogglable: false,
+                    toolTip: "Spawns 10 explosive eggs."
+                }),
+                new ButtonInfo({
+                    buttonText: "Spawn Saturn Clones",
+                    method: () => {
+                        try {
+                            const pos = GTPlayer ? getTransform(GTPlayer).method("get_position").invoke() : zeroVector;
+                            for (let i = 0; i < 5; i++) {
+                                setTimeout(() => {
+                                    try {
+                                        const runner = SFXManager.method("get_instance").invoke()?.field("_runner").value;
+                                        if (runner && !runner.isNull()) PrefabGen.method("SpawnMobAsync", 6).invoke(22, [pos.field("x").value + (Math.random()-0.5)*10, pos.field("y").value + 1, pos.field("z").value + (Math.random()-0.5)*10], identityQuaternion, null, runner, true);
+                                    } catch(_) {}
+                                }, i * 400);
+                            }
+                            sendNotification("Spawned 5 Segway clones!", false);
+                        } catch(e) { sendNotification("Saturn: " + e, false); }
+                    },
+                    isTogglable: false,
+                    toolTip: "Spawns 5 Segway (Saturn) clones."
+                }),
+                new ButtonInfo({
+                    buttonText: "Christmas Dome",
+                    method: () => {
+                        try {
+                            const pos = GTPlayer ? getTransform(GTPlayer).method("get_position").invoke() : zeroVector;
+                            spawnItemAtPos("item_metal_ball_xmas", pos, identityQuaternion);
+                            spawnItemAtPos("item_steel_beam_xmas", [pos.field("x").value + 1, pos.field("y").value, pos.field("z").value], identityQuaternion);
+                            spawnItemAtPos("item_metal_rod_xmas", [pos.field("x").value - 1, pos.field("y").value, pos.field("z").value], identityQuaternion);
+                            spawnItemAtPos("item_metal_plate_xmas", [pos.field("x").value, pos.field("y").value + 1, pos.field("z").value], identityQuaternion);
+                            spawnItemAtPos("item_truss_xmas", [pos.field("x").value, pos.field("y").value + 2, pos.field("z").value], identityQuaternion);
+                            sendNotification("Christmas dome spawned!", false);
+                        } catch(e) { sendNotification("Xmas: " + e, false); }
+                    },
+                    isTogglable: false,
+                    toolTip: "Spawns a Christmas-themed dome of items."
+                }),
+                new ButtonInfo({
+                    buttonText: "Selling Machine Dome",
+                    method: () => {
+                        try {
+                            const pos = GTPlayer ? getTransform(GTPlayer).method("get_position").invoke() : zeroVector;
+                            for (let i = 0; i < 8; i++) {
+                                const angle = (i / 8) * Math.PI * 2;
+                                const x = pos.field("x").value + Math.cos(angle) * 3;
+                                const z = pos.field("z").value + Math.sin(angle) * 3;
+                                try {
+                                    const runner = SFXManager.method("get_instance").invoke()?.field("_runner").value;
+                                    if (runner && !runner.isNull()) {
+                                        PrefabGen.method("SpawnAsync", 5).overload("System.String", "UnityEngine.Vector3", "UnityEngine.Quaternion", "Fusion.NetworkRunner", "System.Action`1").invoke(
+                                            Il2Cpp.string("ItemSellingMachineController"), [x, pos.field("y").value, z], identityQuaternion, runner, NULL
+                                        );
+                                    }
+                                } catch(_) {}
+                            }
+                            sendNotification("Selling Machine Dome spawned!", false);
+                        } catch(e) { sendNotification("SMDome: " + e, false); }
+                    },
+                    isTogglable: false,
+                    toolTip: "Spawns a ring of selling machines."
+                }),
+                new ButtonInfo({
+                    buttonText: "Spawn Full Shredder",
+                    method: () => {
+                        try {
+                            const pos = GTPlayer ? getTransform(GTPlayer).method("get_position").invoke() : zeroVector;
+                            spawnItemAtPos("item_shredder", pos, identityQuaternion);
+                            sendNotification("Shredder spawned!", false);
+                        } catch(e) { sendNotification("Shredder: " + e, false); }
+                    },
+                    isTogglable: false,
+                    toolTip: "Spawns a shredder item."
+                }),
+                new ButtonInfo({
+                    buttonText: "Spawn Pumpkins",
+                    method: () => {
+                        try {
+                            const pos = GTPlayer ? getTransform(GTPlayer).method("get_position").invoke() : zeroVector;
+                            const pumpkins = ["item_pumpkin_bomb","item_pumpkin_pie","item_pumpkinjack","item_pumpkinjack_small"];
+                            for (let i = 0; i < 8; i++) {
+                                const p = pumpkins[i % pumpkins.length];
+                                setTimeout(() => { spawnItemAtPos(p, [pos.field("x").value + (Math.random()-0.5)*6, pos.field("y").value + 1, pos.field("z").value + (Math.random()-0.5)*6], identityQuaternion); }, i * 100);
+                            }
+                            sendNotification("Spawned 8 pumpkins!", false);
+                        } catch(e) { sendNotification("Pumpkins: " + e, false); }
+                    },
+                    isTogglable: false,
+                    toolTip: "Spawns 8 pumpkin items in a circle."
+                }),
+                new ButtonInfo({
+                    buttonText: "Machine to Me",
+                    method: () => {
+                        try {
+                            const localPlayer = NetPlayer.method("get_localPlayer").invoke();
+                            if (!localPlayer || localPlayer.isNull()) return;
+                            const myPos = getTransform(localPlayer).method("get_position").invoke();
+                            const allObjs = Object.FindObjectsOfType(ItemSellingMachineController);
+                            if (!allObjs || allObjs.isNull()) return;
+                            for (let i = 0; i < allObjs.length; i++) {
+                                try {
+                                    const obj = allObjs.method("get_Item").invoke(i);
+                                    if (obj && !obj.isNull()) {
+                                        try { obj.method("RPC_Teleport").invoke([myPos.field("x").value, myPos.field("y").value + 1, myPos.field("z").value]); } catch(_) {}
+                                    }
+                                } catch(_) {}
+                            }
+                            sendNotification("Teleported machines to you!", false);
+                        } catch(e) { sendNotification("Machine: " + e, false); }
+                    },
+                    isTogglable: false,
+                    toolTip: "Teleports all selling machines to your position."
+                }),
+            ];
+
+            // ===== PAGE 3: LAUNCHERS (cat 42) =====
+            buttons[42] = [
+                new ButtonInfo({ buttonText: "Exit Launchers", method: () => { currentCategory = 0; currentPage = 0; }, isTogglable: false, toolTip: "Returns to main menu." }),
+                new ButtonInfo({
+                    buttonText: "Blackhole Launcher",
+                    enableMethod: () => { sendNotification("Blackhole Launcher ON", false); },
+                    disableMethod: () => { sendNotification("Blackhole Launcher OFF", false); },
+                    method: () => {
+                        try {
+                            const localPlayer = NetPlayer.method("get_localPlayer").invoke();
+                            if (!localPlayer || localPlayer.isNull()) return;
+                            const hand = righthand ? rightHandTransform : leftHandTransform;
+                            if (!hand || hand.isNull()) return;
+                            const pos = hand.method("get_position").invoke();
+                            spawnItemAtPos("item_anti_gravity_grenade", [pos.field("x").value, pos.field("y").value, pos.field("z").value], identityQuaternion);
+                        } catch(_) {}
+                    },
+                    isTogglable: true,
+                    toolTip: "Launches anti-gravity grenades from your hand."
+                }),
+                new ButtonInfo({
+                    buttonText: "Snowball Launcher",
+                    enableMethod: () => { sendNotification("Snowball Launcher ON", false); },
+                    disableMethod: () => { sendNotification("Snowball Launcher OFF", false); },
+                    method: () => {
+                        try {
+                            const hand = righthand ? rightHandTransform : leftHandTransform;
+                            if (!hand || hand.isNull()) return;
+                            const pos = hand.method("get_position").invoke();
+                            spawnItemAtPos("item_snowball", [pos.field("x").value, pos.field("y").value, pos.field("z").value], identityQuaternion);
+                        } catch(_) {}
+                    },
+                    isTogglable: true,
+                    toolTip: "Launches snowballs from your hand."
+                }),
+                new ButtonInfo({
+                    buttonText: "Bootzooka",
+                    enableMethod: () => { sendNotification("Bootzooka ON", false); },
+                    disableMethod: () => { sendNotification("Bootzooka OFF", false); },
+                    method: () => {
+                        try {
+                            const hand = righthand ? rightHandTransform : leftHandTransform;
+                            if (!hand || hand.isNull()) return;
+                            const pos = hand.method("get_position").invoke();
+                            spawnItemAtPos("item_flipflop_realistic", [pos.field("x").value, pos.field("y").value, pos.field("z").value], identityQuaternion);
+                        } catch(_) {}
+                    },
+                    isTogglable: true,
+                    toolTip: "Launches flip flops from your hand."
+                }),
+                new ButtonInfo({
+                    buttonText: "Bomb Arrow",
+                    enableMethod: () => { sendNotification("Bomb Arrow ON", false); },
+                    disableMethod: () => { sendNotification("Bomb Arrow OFF", false); },
+                    method: () => {
+                        try {
+                            const hand = righthand ? rightHandTransform : leftHandTransform;
+                            if (!hand || hand.isNull()) return;
+                            const pos = hand.method("get_position").invoke();
+                            spawnItemAtPos("item_arrow_bomb", [pos.field("x").value, pos.field("y").value, pos.field("z").value], identityQuaternion);
+                        } catch(_) {}
+                    },
+                    isTogglable: true,
+                    toolTip: "Launches bomb arrows from your hand."
+                }),
+                new ButtonInfo({
+                    buttonText: "Rainbow Item Launcher",
+                    enableMethod: () => { sendNotification("Rainbow Item Launcher ON", false); },
+                    disableMethod: () => { sendNotification("Rainbow Item Launcher OFF", false); },
+                    method: () => {
+                        try {
+                            const hand = righthand ? rightHandTransform : leftHandTransform;
+                            if (!hand || hand.isNull()) return;
+                            const pos = hand.method("get_position").invoke();
+                            const rainbowItems = ["item_glowstick","item_balloon_heart","item_lava_fishing_rod","item_stellarsword_gold","item_bubble_gun"];
+                            const item = rainbowItems[Math.floor(Math.random() * rainbowItems.length)];
+                            const spawned = spawnItemAtPos(item, [pos.field("x").value, pos.field("y").value, pos.field("z").value], identityQuaternion);
+                            if (spawned && !spawned.isNull()) applyRainbowToSpawnedObject(spawned, Math.random(), 1.0);
+                        } catch(_) {}
+                    },
+                    isTogglable: true,
+                    toolTip: "Launches rainbow-colored items from your hand."
+                }),
+                new ButtonInfo({
+                    buttonText: "RPG Out Of Head",
+                    method: () => {
+                        try {
+                            const localPlayer = NetPlayer.method("get_localPlayer").invoke();
+                            if (!localPlayer || localPlayer.isNull()) return;
+                            const headPos = headCollider ? headCollider.method("get_transform").invoke().method("get_position").invoke() : getTransform(localPlayer).method("get_position").invoke();
+                            spawnItemAtPos("item_rpg", [headPos.field("x").value, headPos.field("y").value + 0.3, headPos.field("z").value], identityQuaternion);
+                            sendNotification("RPG from head!", false);
+                        } catch(e) { sendNotification("RPG: " + e, false); }
+                    },
+                    isTogglable: false,
+                    toolTip: "Spawns an RPG at your head position."
+                }),
+                new ButtonInfo({
+                    buttonText: "Fling Player",
+                    enableMethod: () => { sendNotification("Fling Player ON", false); },
+                    disableMethod: () => { sendNotification("Fling Player OFF", false); },
+                    method: () => {
+                        try {
+                            const hand = righthand ? rightHandTransform : leftHandTransform;
+                            if (!hand || hand.isNull()) return;
+                            const pos = hand.method("get_position").invoke();
+                            const players = NetPlayer.method("GetAllNetPlayers").invoke();
+                            if (!players || players.isNull()) return;
+                            for (let i = 0; i < players.length; i++) {
+                                try {
+                                    const p = players.method("get_Item").invoke(i);
+                                    if (p && !p.isNull() && !p.method("get_IsMine").invoke()) {
+                                        const pPos = getTransform(p).method("get_position").invoke();
+                                        const dx = pPos.field("x").value - pos.field("x").value;
+                                        const dy = pPos.field("y").value - pos.field("y").value;
+                                        const dz = pPos.field("z").value - pos.field("z").value;
+                                        const dist = Math.sqrt(dx*dx + dy*dy + dz*dz);
+                                        if (dist < 3.0) {
+                                            p.method("RPC_AddForce").invoke([dx * -500, 800, dz * -500]);
+                                        }
+                                    }
+                                } catch(_) {}
+                            }
+                        } catch(_) {}
+                    },
+                    isTogglable: true,
+                    toolTip: "Flings nearby players away when close to your hand."
+                }),
+                new ButtonInfo({
+                    buttonText: "Spawn Mob Gun",
+                    enableMethod: () => { sendNotification("Spawn Mob Gun ON", false); },
+                    disableMethod: () => { sendNotification("Spawn Mob Gun OFF", false); },
+                    method: () => {
+                        try {
+                            const hand = righthand ? rightHandTransform : leftHandTransform;
+                            if (!hand || hand.isNull()) return;
+                            const pos = hand.method("get_position").invoke();
+                            const runner = SFXManager.method("get_instance").invoke()?.field("_runner").value;
+                            if (runner && !runner.isNull()) {
+                                PrefabGen.method("SpawnMobAsync", 6).invoke(mobIDs[mobIndex].id, [pos.field("x").value, pos.field("y").value, pos.field("z").value], identityQuaternion, null, runner, true);
+                            }
+                        } catch(_) {}
+                    },
+                    isTogglable: true,
+                    toolTip: "Spawns the selected mob at your hand when gripping."
+                }),
+                new ButtonInfo({
+                    buttonText: "Spawn Items Gun",
+                    enableMethod: () => { sendNotification("Spawn Items Gun ON", false); },
+                    disableMethod: () => { sendNotification("Spawn Items Gun OFF", false); },
+                    method: () => {
+                        try {
+                            const hand = righthand ? rightHandTransform : leftHandTransform;
+                            if (!hand || hand.isNull()) return;
+                            const pos = hand.method("get_position").invoke();
+                            spawnItemAtPos(itemIDs[itemIndex], [pos.field("x").value, pos.field("y").value, pos.field("z").value], identityQuaternion);
+                        } catch(_) {}
+                    },
+                    isTogglable: true,
+                    toolTip: "Spawns the selected item at your hand when gripping."
+                }),
+            ];
+
+            // ===== PAGE 4: PLAYER/MOVEMENT (cat 43) =====
+            buttons[43] = [
+                new ButtonInfo({ buttonText: "Exit Player", method: () => { currentCategory = 0; currentPage = 0; }, isTogglable: false, toolTip: "Returns to main menu." }),
+                new ButtonInfo({
+                    buttonText: "God Mode",
+                    enableMethod: () => { godModeEnabled = true; infDamage = true; sendNotification("God Mode ON", false); },
+                    disableMethod: () => { godModeEnabled = false; infDamage = false; sendNotification("God Mode OFF", false); },
+                    isTogglable: true,
+                    toolTip: "Invincible + infinite health + infinite damage."
+                }),
+                new ButtonInfo({
+                    buttonText: "Infinite Stamina",
+                    enableMethod: () => { infiniteStaminaEnabled = true; sendNotification("Infinite Stamina ON", false); },
+                    disableMethod: () => { infiniteStaminaEnabled = false; sendNotification("Infinite Stamina OFF", false); },
+                    isTogglable: true,
+                    toolTip: "Never run out of stamina."
+                }),
+                new ButtonInfo({
+                    buttonText: "No Hunger/Thirst",
+                    enableMethod: () => { noHungerThirstEnabled = true; sendNotification("No Hunger/Thirst ON", false); },
+                    disableMethod: () => { noHungerThirstEnabled = false; sendNotification("No Hunger/Thirst OFF", false); },
+                    isTogglable: true,
+                    toolTip: "Disables hunger, thirst, oxygen, and radiation."
+                }),
+                new ButtonInfo({
+                    buttonText: "Speed Hack +",
+                    method: () => { speedHackMultiplier = Math.min(10, speedHackMultiplier + 0.5); speedHackEnabled = true; sendNotification("Speed: x" + speedHackMultiplier.toFixed(1), false); },
+                    isTogglable: false,
+                    toolTip: "Increases movement speed."
+                }),
+                new ButtonInfo({
+                    buttonText: "Speed Hack -",
+                    method: () => { speedHackMultiplier = Math.max(1, speedHackMultiplier - 0.5); sendNotification("Speed: x" + speedHackMultiplier.toFixed(1), false); },
+                    isTogglable: false,
+                    toolTip: "Decreases movement speed."
+                }),
+                new ButtonInfo({
+                    buttonText: "Noclip",
+                    enableMethod: () => { noclipEnabled = true; sendNotification("Noclip ON", false); },
+                    disableMethod: () => { noclipEnabled = false; sendNotification("Noclip OFF", false); },
+                    isTogglable: true,
+                    toolTip: "Walk through walls and objects."
+                }),
+                new ButtonInfo({
+                    buttonText: "Ghost Mode",
+                    enableMethod: () => { ghostModeEnabled = true; noclipEnabled = true; sendNotification("Ghost Mode ON", false); },
+                    disableMethod: () => { ghostModeEnabled = false; noclipEnabled = false; sendNotification("Ghost Mode OFF", false); },
+                    isTogglable: true,
+                    toolTip: "Invisible + noclip. You are a ghost."
+                }),
+                new ButtonInfo({
+                    buttonText: "Save Position",
+                    method: () => {
+                        try {
+                            const localPlayer = NetPlayer.method("get_localPlayer").invoke();
+                            if (!localPlayer || localPlayer.isNull()) return;
+                            savedPosition = getTransform(localPlayer).method("get_position").invoke().clone();
+                            sendNotification("Position saved!", false);
+                        } catch(e) { sendNotification("Save: " + e, false); }
+                    },
+                    isTogglable: false,
+                    toolTip: "Saves your current position."
+                }),
+                new ButtonInfo({
+                    buttonText: "Teleport To Saved",
+                    method: () => {
+                        try {
+                            if (!savedPosition) { sendNotification("No saved position!", false); return; }
+                            const localPlayer = NetPlayer.method("get_localPlayer").invoke();
+                            if (!localPlayer || localPlayer.isNull()) return;
+                            localPlayer.method("RPC_Teleport").invoke([savedPosition.field("x").value, savedPosition.field("y").value, savedPosition.field("z").value]);
+                            sendNotification("Teleported to saved position!", false);
+                        } catch(e) { sendNotification("TP: " + e, false); }
+                    },
+                    isTogglable: false,
+                    toolTip: "Teleports to your saved position."
+                }),
+                new ButtonInfo({
+                    buttonText: "Set Wanted",
+                    method: () => {
+                        try {
+                            const localPlayer = NetPlayer.method("get_localPlayer").invoke();
+                            if (!localPlayer || localPlayer.isNull()) return;
+                            selfRPC(() => localPlayer.method("RPC_SetWantedLevel").invoke(5));
+                            sendNotification("Set wanted level 5!", false);
+                        } catch(e) { sendNotification("Wanted: " + e, false); }
+                    },
+                    isTogglable: false,
+                    toolTip: "Sets your wanted level to 5."
+                }),
+                new ButtonInfo({
+                    buttonText: "No Gravity",
+                    enableMethod: () => { noGravityEnabled = true; sendNotification("No Gravity ON", false); },
+                    disableMethod: () => { noGravityEnabled = false; sendNotification("No Gravity OFF", false); },
+                    isTogglable: true,
+                    toolTip: "Disables gravity for yourself."
+                }),
+                new ButtonInfo({
+                    buttonText: "Lock Held Position",
+                    enableMethod: () => { lockHeldItemEnabled = true; sendNotification("Lock Held ON", false); },
+                    disableMethod: () => { lockHeldItemEnabled = false; sendNotification("Lock Held OFF", false); },
+                    isTogglable: true,
+                    toolTip: "Locks your held item position in place."
+                }),
+            ];
+
+            // ===== PAGE 5: COMBAT/WEAPONS (cat 44) =====
+            buttons[44] = [
+                new ButtonInfo({ buttonText: "Exit Combat", method: () => { currentCategory = 0; currentPage = 0; }, isTogglable: false, toolTip: "Returns to main menu." }),
+                new ButtonInfo({
+                    buttonText: "One Hit Kill",
+                    enableMethod: () => { oneHitKillEnabled = true; infDamage = true; sendNotification("One Hit Kill ON", false); },
+                    disableMethod: () => { oneHitKillEnabled = false; infDamage = false; sendNotification("One Hit Kill OFF", false); },
+                    isTogglable: true,
+                    toolTip: "Every hit is a one-hit kill."
+                }),
+                new ButtonInfo({
+                    buttonText: "Infinite Bag",
+                    enableMethod: () => { infiniteBagEnabled = true; sendNotification("Infinite Bag ON", false); },
+                    disableMethod: () => { infiniteBagEnabled = false; sendNotification("Infinite Bag OFF", false); },
+                    isTogglable: true,
+                    toolTip: "Unlimited bag storage."
+                }),
+                new ButtonInfo({
+                    buttonText: "Teleport Loot",
+                    method: () => {
+                        try {
+                            const localPlayer = NetPlayer.method("get_localPlayer").invoke();
+                            if (!localPlayer || localPlayer.isNull()) return;
+                            const myPos = getTransform(localPlayer).method("get_position").invoke();
+                            const allItems = Object.FindObjectsOfType(GrabbableObject);
+                            if (!allItems || allItems.isNull()) return;
+                            let count = 0;
+                            for (let i = 0; i < Math.min(allItems.length, 50); i++) {
+                                try {
+                                    const item = allItems.method("get_Item").invoke(i);
+                                    if (item && !item.isNull()) {
+                                        const t = getTransform(item);
+                                        if (t && !t.isNull()) {
+                                            t.method("set_position").invoke([myPos.field("x").value + (Math.random()-0.5)*2, myPos.field("y").value + 1, myPos.field("z").value + (Math.random()-0.5)*2]);
+                                            count++;
+                                        }
+                                    }
+                                } catch(_) {}
+                            }
+                            sendNotification("Teleported " + count + " items!", false);
+                        } catch(e) { sendNotification("Loot: " + e, false); }
+                    },
+                    isTogglable: false,
+                    toolTip: "Teleports nearby items to your position."
+                }),
+                new ButtonInfo({
+                    buttonText: "Drop All Items",
+                    method: () => {
+                        try {
+                            const localPlayer = NetPlayer.method("get_localPlayer").invoke();
+                            if (!localPlayer || localPlayer.isNull()) return;
+                            const inv = localPlayer.method("get_inventory").invoke();
+                            if (!inv || inv.isNull()) { sendNotification("No inventory", false); return; }
+                            const items = inv.method("GetAllItems").invoke();
+                            if (!items || items.isNull()) return;
+                            for (let i = 0; i < items.length; i++) {
+                                try {
+                                    const item = items.method("get_Item").invoke(i);
+                                    if (item && !item.isNull()) {
+                                        item.method("DropItem").invoke();
+                                    }
+                                } catch(_) {}
+                            }
+                            sendNotification("Dropped all items!", false);
+                        } catch(e) { sendNotification("Drop: " + e, false); }
+                    },
+                    isTogglable: false,
+                    toolTip: "Drops all items from your inventory."
+                }),
+                new ButtonInfo({
+                    buttonText: "RP Earn",
+                    method: () => {
+                        try {
+                            const localPlayer = NetPlayer.method("get_localPlayer").invoke();
+                            if (!localPlayer || localPlayer.isNull()) return;
+                            for (let i = 0; i < 10; i++) {
+                                setTimeout(() => {
+                                    try { localPlayer.method("RPC_EarnRP").invoke(100); } catch(_) {}
+                                }, i * 100);
+                            }
+                            sendNotification("Earned 1000 RP!", false);
+                        } catch(e) { sendNotification("RP: " + e, false); }
+                    },
+                    isTogglable: false,
+                    toolTip: "Earns 1000 research points."
+                }),
+                new ButtonInfo({
+                    buttonText: "Crash Lobby",
+                    method: () => {
+                        try {
+                            const localPlayer = NetPlayer.method("get_localPlayer").invoke();
+                            if (!localPlayer || localPlayer.isNull()) return;
+                            for (let i = 0; i < 100; i++) {
+                                setTimeout(() => {
+                                    try {
+                                        localPlayer.method("RPC_PlayerHit", 3).invoke(999999, [0, -99999, 0], DamageSourceInfoClass.method("get_Null").invoke());
+                                    } catch(_) {}
+                                }, i * 10);
+                            }
+                            sendNotification("Lobby crash attempted!", false);
+                        } catch(e) { sendNotification("Crash: " + e, false); }
+                    },
+                    isTogglable: false,
+                    toolTip: "Attempts to crash the lobby (use with caution)."
+                }),
+                new ButtonInfo({
+                    buttonText: "Set Kills +10",
+                    method: () => {
+                        try {
+                            const localPlayer = NetPlayer.method("get_localPlayer").invoke();
+                            if (!localPlayer || localPlayer.isNull()) return;
+                            for (let i = 0; i < 10; i++) {
+                                selfRPC(() => localPlayer.method("RPC_AwardKill").invoke());
+                            }
+                            sendNotification("Added 10 kills!", false);
+                        } catch(e) { sendNotification("Kills: " + e, false); }
+                    },
+                    isTogglable: false,
+                    toolTip: "Adds 10 kills to your stats."
+                }),
+                new ButtonInfo({
+                    buttonText: "Set Deaths 0",
+                    method: () => {
+                        try {
+                            const localPlayer = NetPlayer.method("get_localPlayer").invoke();
+                            if (!localPlayer || localPlayer.isNull()) return;
+                            try { localPlayer.field("_deaths").value = 0; } catch(_) {}
+                            try { localPlayer.field("deaths").value = 0; } catch(_) {}
+                            sendNotification("Deaths set to 0!", false);
+                        } catch(e) { sendNotification("Deaths: " + e, false); }
+                    },
+                    isTogglable: false,
+                    toolTip: "Resets your death counter to 0."
+                }),
+                new ButtonInfo({
+                    buttonText: "Award Kill All",
+                    method: () => {
+                        try {
+                            const localPlayer = NetPlayer.method("get_localPlayer").invoke();
+                            if (!localPlayer || localPlayer.isNull()) return;
+                            selfRPC(() => localPlayer.method("RPC_AwardKill").invoke());
+                            sendNotification("Kill awarded!", false);
+                        } catch(e) { sendNotification("Award: " + e, false); }
+                    },
+                    isTogglable: false,
+                    toolTip: "Awards a kill to yourself."
+                }),
+            ];
+
+            // ===== PAGE 6: GUN MODS (cat 45) - NEW additions =====
+            buttons[45] = [
+                new ButtonInfo({ buttonText: "Exit Gun Mods", method: () => { currentCategory = 0; currentPage = 0; }, isTogglable: false, toolTip: "Returns to main menu." }),
+                new ButtonInfo({
+                    buttonText: "Ban Gun",
+                    enableMethod: () => { banGunEnabled = true; sendNotification("Ban Gun ON", false); },
+                    disableMethod: () => { banGunEnabled = false; sendNotification("Ban Gun OFF", false); },
+                    isTogglable: true,
+                    toolTip: "Kicks targeted player from the server."
+                }),
+                new ButtonInfo({
+                    buttonText: "Blind Gun",
+                    enableMethod: () => { blindGunEnabled = true; sendNotification("Blind Gun ON", false); },
+                    disableMethod: () => { blindGunEnabled = false; sendNotification("Blind Gun OFF", false); },
+                    isTogglable: true,
+                    toolTip: "Makes targeted player's screen go black."
+                }),
+                new ButtonInfo({
+                    buttonText: "Push Gun",
+                    enableMethod: () => { pushGunEnabled = true; sendNotification("Push Gun ON", false); },
+                    disableMethod: () => { pushGunEnabled = false; sendNotification("Push Gun OFF", false); },
+                    isTogglable: true,
+                    toolTip: "Pushes targeted player with force."
+                }),
+                new ButtonInfo({
+                    buttonText: "Force Grab Gun",
+                    enableMethod: () => { sendNotification("Force Grab Gun ON", false); },
+                    disableMethod: () => { sendNotification("Force Grab Gun OFF", false); },
+                    method: () => {},
+                    isTogglable: true,
+                    toolTip: "Force grabs targeted player's held items."
+                }),
+                new ButtonInfo({
+                    buttonText: "Select Obj Gun",
+                    enableMethod: () => { sendNotification("Select Obj Gun ON", false); },
+                    disableMethod: () => { sendNotification("Select Obj Gun OFF", false); },
+                    method: () => {},
+                    isTogglable: true,
+                    toolTip: "Click to select objects for inspection."
+                }),
+                new ButtonInfo({
+                    buttonText: "VFX Spawn Gun",
+                    enableMethod: () => { sendNotification("VFX Spawn Gun ON", false); },
+                    disableMethod: () => { sendNotification("VFX Spawn Gun OFF", false); },
+                    method: () => {},
+                    isTogglable: true,
+                    toolTip: "Spawns selected VFX at pointed location."
+                }),
+                new ButtonInfo({
+                    buttonText: "Prefab Spawn Gun",
+                    enableMethod: () => { sendNotification("Prefab Spawn Gun ON", false); },
+                    disableMethod: () => { sendNotification("Prefab Spawn Gun OFF", false); },
+                    method: () => {},
+                    isTogglable: true,
+                    toolTip: "Spawns selected prefab at pointed location."
+                }),
+                new ButtonInfo({
+                    buttonText: "Revive Gun",
+                    enableMethod: () => { sendNotification("Revive Gun ON", false); },
+                    disableMethod: () => { sendNotification("Revive Gun OFF", false); },
+                    method: () => {},
+                    isTogglable: true,
+                    toolTip: "Revives targeted dead player."
+                }),
+                new ButtonInfo({
+                    buttonText: "Color Gun",
+                    enableMethod: () => { sendNotification("Color Gun ON", false); },
+                    disableMethod: () => { sendNotification("Color Gun OFF", false); },
+                    method: () => {},
+                    isTogglable: true,
+                    toolTip: "Changes targeted player's color."
+                }),
+                new ButtonInfo({
+                    buttonText: "Freeze Gun",
+                    enableMethod: () => { sendNotification("Freeze Gun ON", false); },
+                    disableMethod: () => { sendNotification("Freeze Gun OFF", false); },
+                    method: () => {},
+                    isTogglable: true,
+                    toolTip: "Freezes targeted player in place."
+                }),
+                new ButtonInfo({
+                    buttonText: "Buff Gun",
+                    enableMethod: () => { sendNotification("Buff Gun ON", false); },
+                    disableMethod: () => { sendNotification("Buff Gun OFF", false); },
+                    method: () => {},
+                    isTogglable: true,
+                    toolTip: "Applies speed/damage buff to targeted player."
+                }),
+                new ButtonInfo({
+                    buttonText: "Launch Gun",
+                    enableMethod: () => { sendNotification("Launch Gun ON", false); },
+                    disableMethod: () => { sendNotification("Launch Gun OFF", false); },
+                    method: () => {},
+                    isTogglable: true,
+                    toolTip: "Launches targeted player upward."
+                }),
+                new ButtonInfo({
+                    buttonText: "Void Gun",
+                    enableMethod: () => { sendNotification("Void Gun ON", false); },
+                    disableMethod: () => { sendNotification("Void Gun OFF", false); },
+                    method: () => {},
+                    isTogglable: true,
+                    toolTip: "Sends targeted player to void."
+                }),
+                new ButtonInfo({
+                    buttonText: "Steal Items Gun",
+                    enableMethod: () => { sendNotification("Steal Items Gun ON", false); },
+                    disableMethod: () => { sendNotification("Steal Items Gun OFF", false); },
+                    method: () => {},
+                    isTogglable: true,
+                    toolTip: "Steals targeted player's held items."
+                }),
+            ];
+
+            // ===== PAGE 8: RPC LOOPS/GUNS (cat 46) =====
+            buttons[46] = [
+                new ButtonInfo({ buttonText: "Exit RPC Loops", method: () => { currentCategory = 0; currentPage = 0; }, isTogglable: false, toolTip: "Returns to main menu." }),
+                new ButtonInfo({ buttonText: "RPC Shake All",
+                    enableMethod: () => { rpcShakeAllEnabled = true; sendNotification("RPC Shake All ON", false); },
+                    disableMethod: () => { rpcShakeAllEnabled = false; sendNotification("RPC Shake All OFF", false); },
+                    isTogglable: true, toolTip: "Shakes all players' screens." }),
+                new ButtonInfo({ buttonText: "RPC Color Purple",
+                    method: () => { try { const p = NetPlayer.method("get_localPlayer").invoke(); if (p && !p.isNull()) selfRPC(() => p.method("RPC_SetColorHSV").invoke(0.75, 1.0, 1.0, 1.0)); sendNotification("Purple!", false); } catch(_) {} },
+                    isTogglable: false, toolTip: "Sets your color to purple." }),
+                new ButtonInfo({ buttonText: "RPC Color Pink",
+                    method: () => { try { const p = NetPlayer.method("get_localPlayer").invoke(); if (p && !p.isNull()) selfRPC(() => p.method("RPC_SetColorHSV").invoke(0.9, 1.0, 1.0, 1.0)); sendNotification("Pink!", false); } catch(_) {} },
+                    isTogglable: false, toolTip: "Sets your color to pink." }),
+                new ButtonInfo({ buttonText: "RPC Color Green",
+                    method: () => { try { const p = NetPlayer.method("get_localPlayer").invoke(); if (p && !p.isNull()) selfRPC(() => p.method("RPC_SetColorHSV").invoke(0.33, 1.0, 1.0, 1.0)); sendNotification("Green!", false); } catch(_) {} },
+                    isTogglable: false, toolTip: "Sets your color to green." }),
+                new ButtonInfo({ buttonText: "RPC Color Yellow",
+                    method: () => { try { const p = NetPlayer.method("get_localPlayer").invoke(); if (p && !p.isNull()) selfRPC(() => p.method("RPC_SetColorHSV").invoke(0.15, 1.0, 1.0, 1.0)); sendNotification("Yellow!", false); } catch(_) {} },
+                    isTogglable: false, toolTip: "Sets your color to yellow." }),
+                new ButtonInfo({ buttonText: "RPC Color Blue",
+                    method: () => { try { const p = NetPlayer.method("get_localPlayer").invoke(); if (p && !p.isNull()) selfRPC(() => p.method("RPC_SetColorHSV").invoke(0.6, 1.0, 1.0, 1.0)); sendNotification("Blue!", false); } catch(_) {} },
+                    isTogglable: false, toolTip: "Sets your color to blue." }),
+                new ButtonInfo({ buttonText: "RPC Kill Loop",
+                    enableMethod: () => { rpcLoopKillEnabled = true; sendNotification("Kill Loop ON", false); },
+                    disableMethod: () => { rpcLoopKillEnabled = false; sendNotification("Kill Loop OFF", false); },
+                    isTogglable: true, toolTip: "Repeatedly kills all players." }),
+                new ButtonInfo({ buttonText: "RPC Stun Loop",
+                    enableMethod: () => { rpcLoopStunEnabled = true; sendNotification("Stun Loop ON", false); },
+                    disableMethod: () => { rpcLoopStunEnabled = false; sendNotification("Stun Loop OFF", false); },
+                    isTogglable: true, toolTip: "Repeatedly stuns all players." }),
+                new ButtonInfo({ buttonText: "RPC Bounce Loop",
+                    enableMethod: () => { rpcLoopBounceEnabled = true; sendNotification("Bounce Loop ON", false); },
+                    disableMethod: () => { rpcLoopBounceEnabled = false; sendNotification("Bounce Loop OFF", false); },
+                    isTogglable: true, toolTip: "Repeatedly bounces all players." }),
+                new ButtonInfo({ buttonText: "RPC Hit Loop",
+                    enableMethod: () => { rpcLoopHitEnabled = true; sendNotification("Hit Loop ON", false); },
+                    disableMethod: () => { rpcLoopHitEnabled = false; sendNotification("Hit Loop OFF", false); },
+                    isTogglable: true, toolTip: "Repeatedly hits all players." }),
+                new ButtonInfo({ buttonText: "RPC Rainbow Loop",
+                    enableMethod: () => { rpcLoopRainbowEnabled = true; sendNotification("Rainbow Loop ON", false); },
+                    disableMethod: () => { rpcLoopRainbowEnabled = false; sendNotification("Rainbow Loop OFF", false); },
+                    isTogglable: true, toolTip: "Continuously changes your color." }),
+                new ButtonInfo({ buttonText: "RPC Chaos Loop",
+                    enableMethod: () => { rpcLoopChaosEnabled = true; sendNotification("Chaos Loop ON", false); },
+                    disableMethod: () => { rpcLoopChaosEnabled = false; sendNotification("Chaos Loop OFF", false); },
+                    isTogglable: true, toolTip: "Applies random RPCs to all players." }),
+                new ButtonInfo({ buttonText: "RPC Wanted Loop",
+                    enableMethod: () => { rpcLoopWantedEnabled = true; sendNotification("Wanted Loop ON", false); },
+                    disableMethod: () => { rpcLoopWantedEnabled = false; sendNotification("Wanted Loop OFF", false); },
+                    isTogglable: true, toolTip: "Keeps setting wanted level." }),
+                new ButtonInfo({ buttonText: "RPC Fake Death Loop",
+                    enableMethod: () => { rpcLoopFakeDeathEnabled = true; sendNotification("Fake Death Loop ON", false); },
+                    disableMethod: () => { rpcLoopFakeDeathEnabled = false; sendNotification("Fake Death Loop OFF", false); },
+                    isTogglable: true, toolTip: "Continuously fakes death." }),
+                new ButtonInfo({ buttonText: "RPC Inf Money Loop",
+                    enableMethod: () => { rpcLoopInfMoneyEnabled = true; sendNotification("Inf Money Loop ON", false); },
+                    disableMethod: () => { rpcLoopInfMoneyEnabled = false; sendNotification("Inf Money Loop OFF", false); },
+                    isTogglable: true, toolTip: "Continuously gives money to all." }),
+            ];
+
+            // ===== PAGE 10: EXPLOITS (cat 47) =====
+            buttons[47] = [
+                new ButtonInfo({ buttonText: "Exit Exploits", method: () => { currentCategory = 0; currentPage = 0; }, isTogglable: false, toolTip: "Returns to main menu." }),
+                new ButtonInfo({
+                    buttonText: "Bypass Sell Limit",
+                    enableMethod: () => { bypassSellLimitEnabled = true; sendNotification("Bypass Sell Limit ON", false); },
+                    disableMethod: () => { bypassSellLimitEnabled = false; sendNotification("Bypass Sell Limit OFF", false); },
+                    isTogglable: true,
+                    toolTip: "Bypasses item sell limits."
+                }),
+                new ButtonInfo({
+                    buttonText: "Spoof Photon ID",
+                    enableMethod: () => { spoofPhotonIdEnabled = true; sendNotification("Spoof Photon ID ON", false); },
+                    disableMethod: () => { spoofPhotonIdEnabled = false; sendNotification("Spoof Photon ID OFF", false); },
+                    isTogglable: true,
+                    toolTip: "Spoofs your Photon network ID."
+                }),
+                new ButtonInfo({
+                    buttonText: "Force Dev Mode",
+                    enableMethod: () => { forceDevModeEnabled = true; sendNotification("Force Dev Mode ON", false); },
+                    disableMethod: () => { forceDevModeEnabled = false; sendNotification("Force Dev Mode OFF", false); },
+                    isTogglable: true,
+                    toolTip: "Forces developer mode on."
+                }),
+                new ButtonInfo({
+                    buttonText: "Unlock All",
+                    method: () => {
+                        try {
+                            const localPlayer = NetPlayer.method("get_localPlayer").invoke();
+                            if (!localPlayer || localPlayer.isNull()) return;
+                            try { localPlayer.field("_isUnlocked").value = true; } catch(_) {}
+                            try { localPlayer.field("isUnlocked").value = true; } catch(_) {}
+                            sendNotification("Unlocked!", false);
+                        } catch(e) { sendNotification("Unlock: " + e, false); }
+                    },
+                    isTogglable: false,
+                    toolTip: "Unlocks all locked content."
+                }),
+                new ButtonInfo({
+                    buttonText: "Block All RPCs",
+                    enableMethod: () => { blockRPCEnabled = true; sendNotification("Block RPCs ON", false); },
+                    disableMethod: () => { blockRPCEnabled = false; sendNotification("Block RPCs OFF", false); },
+                    isTogglable: true,
+                    toolTip: "Blocks all incoming RPCs."
+                }),
+                new ButtonInfo({
+                    buttonText: "AntiCheat Bypass",
+                    method: () => {
+                        try {
+                            const AntiCheatClass = AssemblyCSharp.class("AnimalCompany.AntiCheatSystem");
+                            const antiCheatTick = tryMethodName(AntiCheatClass, ["Update", "LateUpdate", "FixedUpdate"]);
+                            if (antiCheatTick) antiCheatTick.implementation = function() {};
+                            sendNotification("AntiCheat bypassed!", false);
+                        } catch(e) { sendNotification("AC Bypass: " + e, false); }
+                    },
+                    isTogglable: false,
+                    toolTip: "Bypasses the anti-cheat system."
+                }),
+                new ButtonInfo({
+                    buttonText: "Value MAX",
+                    method: () => {
+                        try {
+                            const allItems = Object.FindObjectsOfType(GrabbableObject);
+                            if (!allItems || allItems.isNull()) return;
+                            for (let i = 0; i < allItems.length; i++) {
+                                try {
+                                    const item = allItems.method("get_Item").invoke(i);
+                                    if (item && !item.isNull()) {
+                                        try { item.field("sellValue").value = 999999; } catch(_) {}
+                                    }
+                                } catch(_) {}
+                            }
+                            sendNotification("Set all values to MAX!", false);
+                        } catch(e) { sendNotification("Value: " + e, false); }
+                    },
+                    isTogglable: false,
+                    toolTip: "Sets all item sell values to maximum."
+                }),
+                new ButtonInfo({
+                    buttonText: "Value Reset",
+                    method: () => {
+                        try {
+                            const allItems = Object.FindObjectsOfType(GrabbableObject);
+                            if (!allItems || allItems.isNull()) return;
+                            for (let i = 0; i < allItems.length; i++) {
+                                try {
+                                    const item = allItems.method("get_Item").invoke(i);
+                                    if (item && !item.isNull()) {
+                                        try { item.field("sellValue").value = 0; } catch(_) {}
+                                    }
+                                } catch(_) {}
+                            }
+                            sendNotification("Reset all values!", false);
+                        } catch(e) { sendNotification("Value: " + e, false); }
+                    },
+                    isTogglable: false,
+                    toolTip: "Resets all item sell values."
+                }),
+            ];
+
+            // ===== PAGE 11: SPAMMERS/ARENA (cat 48) =====
+            buttons[48] = [
+                new ButtonInfo({ buttonText: "Exit Spammers", method: () => { currentCategory = 0; currentPage = 0; }, isTogglable: false, toolTip: "Returns to main menu." }),
+                new ButtonInfo({
+                    buttonText: "Goopfish Spam",
+                    enableMethod: () => { goopfishSpamEnabled = true; sendNotification("Goopfish Spam ON", false); },
+                    disableMethod: () => { goopfishSpamEnabled = false; sendNotification("Goopfish Spam OFF", false); },
+                    isTogglable: true,
+                    toolTip: "Continuously spawns goopfish items."
+                }),
+                new ButtonInfo({
+                    buttonText: "Mimic Spam",
+                    enableMethod: () => { mimicSpamEnabled = true; sendNotification("Mimic Spam ON", false); },
+                    disableMethod: () => { mimicSpamEnabled = false; sendNotification("Mimic Spam OFF", false); },
+                    isTogglable: true,
+                    toolTip: "Continuously spawns Mimic mobs."
+                }),
+                new ButtonInfo({
+                    buttonText: "Swarm Spam",
+                    enableMethod: () => { swarmSpamEnabled = true; sendNotification("Swarm Spam ON", false); },
+                    disableMethod: () => { swarmSpamEnabled = false; sendNotification("Swarm Spam OFF", false); },
+                    isTogglable: true,
+                    toolTip: "Continuously spawns FlyingSwarm mobs."
+                }),
+                new ButtonInfo({
+                    buttonText: "Elevator Spam",
+                    enableMethod: () => { sendNotification("Elevator Spam ON", false); },
+                    disableMethod: () => { sendNotification("Elevator Spam OFF", false); },
+                    method: () => {},
+                    isTogglable: true,
+                    toolTip: "Spams elevator triggers."
+                }),
+                new ButtonInfo({
+                    buttonText: "Arena ESP",
+                    enableMethod: () => { arenaEspEnabled = true; sendNotification("Arena ESP ON", false); },
+                    disableMethod: () => { arenaEspEnabled = false; sendNotification("Arena ESP OFF", false); },
+                    isTogglable: true,
+                    toolTip: "Shows arena player locations."
+                }),
+                new ButtonInfo({
+                    buttonText: "Repeat Voice",
+                    enableMethod: () => { repeatVoiceEnabled = true; sendNotification("Repeat Voice ON", false); },
+                    disableMethod: () => { repeatVoiceEnabled = false; sendNotification("Repeat Voice OFF", false); },
+                    isTogglable: true,
+                    toolTip: "Repeats nearby player voice."
+                }),
+                new ButtonInfo({
+                    buttonText: "Start Arena",
+                    method: () => {
+                        try {
+                            const arena = ArenaGameManager.field("_instance").value;
+                            if (arena && !arena.isNull()) { arena.method("RPC_StartGame").invoke(); sendNotification("Arena started!", false); }
+                            else sendNotification("No arena found", false);
+                        } catch(e) { sendNotification("Arena: " + e, false); }
+                    },
+                    isTogglable: false,
+                    toolTip: "Starts the arena game."
+                }),
+                new ButtonInfo({
+                    buttonText: "End Arena",
+                    method: () => {
+                        try {
+                            const arena = ArenaGameManager.field("_instance").value;
+                            if (arena && !arena.isNull()) { arena.method("RPC_EndEarly").invoke(); sendNotification("Arena ended!", false); }
+                            else sendNotification("No arena found", false);
+                        } catch(e) { sendNotification("Arena: " + e, false); }
+                    },
+                    isTogglable: false,
+                    toolTip: "Ends the arena game early."
+                }),
+            ];
+
+            // Add all 12 pages to main menu
+            insertButtonAfter(mainButtons, makeCategoryButton("Page 1: Minigun", 40, "Minigun mods, money, truss, bomba."), "Name Changer");
+            insertButtonAfter(mainButtons, makeCategoryButton("Page 2: Spawning", 41, "Bulk spawners for items, mobs, domes."), "Page 1: Minigun");
+            insertButtonAfter(mainButtons, makeCategoryButton("Page 3: Launchers", 42, "Blackhole, snowball, bootzooka, bomb arrow launchers."), "Page 2: Spawning");
+            insertButtonAfter(mainButtons, makeCategoryButton("Page 4: Player", 43, "God mode, speed, noclip, ghost, stamina."), "Page 3: Launchers");
+            insertButtonAfter(mainButtons, makeCategoryButton("Page 5: Combat", 44, "One hit kill, loot, crash, kills, deaths."), "Page 4: Player");
+            insertButtonAfter(mainButtons, makeCategoryButton("Page 6: Gun Mods", 45, "Ban, blind, push, revivie, color, freeze guns."), "Page 5: Combat");
+            insertButtonAfter(mainButtons, makeCategoryButton("Page 7: RPC Stuff", 13, "RPC actions for all players."), "Page 6: Gun Mods");
+            insertButtonAfter(mainButtons, makeCategoryButton("Page 8: RPC Loops", 46, "RPC loop and gun variants."), "Page 7: RPC Stuff");
+            insertButtonAfter(mainButtons, makeCategoryButton("Page 9: Players", 10, "Whitelist and other player mods."), "Page 8: RPC Loops");
+            insertButtonAfter(mainButtons, makeCategoryButton("Page 10: Exploits", 47, "Bypass, spoof, anti-cheat, value mods."), "Page 9: Players");
+            insertButtonAfter(mainButtons, makeCategoryButton("Page 11: Spammers", 48, "Goopfish, mimic, swarm, arena spam."), "Page 10: Exploits");
+            insertButtonAfter(mainButtons, makeCategoryButton("Page 12: Settings", 21, "Settings and menu config."), "Page 11: Spammers");
         } catch(_) {}
         menuStructurePatched = true;
         try { rebuildButtonMap(); } catch(_) {}
@@ -8837,6 +10101,32 @@ new ButtonInfo({
             },
             isTogglable: true,
             toolTip: "Spawns one mob at your right hand per grip + B press."
+        }),
+
+        new ButtonInfo({
+            buttonText: "Give Masterclient",
+            isTogglable: false,
+            method: () => {
+                try {
+                    let runner = null;
+                    try {
+                        const pgInst = PrefabGen.field("_instance").value;
+                        if (pgInst && !pgInst.isNull()) runner = pgInst.method("get_runner").invoke();
+                    } catch(_) {}
+                    if (!runner || runner.isNull?.()) {
+                        try {
+                            const sfx = SFXManager.field("_instance").value;
+                            if (sfx && !sfx.isNull()) runner = sfx.method("get__currentRunner").invoke();
+                        } catch(_) {}
+                    }
+                    if (!runner || runner.isNull?.()) { sendNotification("Runner is null", false); return; }
+                    const localRef = runner.method("get_LocalPlayer").invoke();
+                    if (!localRef) { sendNotification("LocalPlayer ref null", false); return; }
+                    runner.method("SetMasterClient").invoke(localRef);
+                    sendNotification("You are now the master client!", false);
+                } catch(e) { sendNotification("Masterclient: " + e, false); console.error("[Masterclient]:", e); }
+            },
+            toolTip: "Promotes you to master client / host using NetworkRunner.SetMasterClient."
         }),
 
         new ButtonInfo({
@@ -20281,7 +21571,7 @@ new ButtonInfo({
                         let respawned = null;
                         try {
                             if (!mobSpawnAsyncBroken) {
-                                respawned = PrefabGen.method("SpawnMobAsyncInternal", 6).invoke(
+                                respawned = PrefabGen.method("SpawnMobAsync", 6).invoke(
                                     entry.mobEntry.id, entry.pos, entry.rot, NULL, NULL, Il2Cpp.string("menu")
                                 );
                             }
@@ -21306,12 +22596,313 @@ try {
         };
     } catch(e) { console.error("[Fishing/Rare] RPC_GrantClaimItem hook failed:", e); }
 
+    // ===== NEW MOD TICK HANDLERS =====
+    let newModTickDelay: Map<string, number> = new Map();
+    function shouldTick(key: string, interval: number): boolean {
+        const now = time || 0;
+        const last = newModTickDelay.get(key) ?? 0;
+        if (now < last) return false;
+        newModTickDelay.set(key, now + interval);
+        return true;
+    }
+
+    function rpcAllPlayers(fn: (p: any) => void) {
+        try {
+            const players = NetPlayer.method("GetAllNetPlayers").invoke();
+            if (!players || players.isNull()) return;
+            for (let i = 0; i < players.length; i++) {
+                try {
+                    const p = players.method("get_Item").invoke(i);
+                    if (p && !p.isNull() && !p.method("get_IsMine").invoke()) fn(p);
+                } catch(_) {}
+            }
+        } catch(_) {}
+    }
+
+    // Background tick timer for all new toggle mods (runs every 50ms)
+    setInterval(() => {
+        if (!GTPlayer || !isLiveObject(GTPlayer)) return;
+
+        // God Mode: keep health maxed
+        if (godModeEnabled) {
+            try {
+                const player = NetPlayer.method("get_localPlayer").invoke();
+                if (player && !player.isNull()) {
+                    try { player.field("health").value = player.field("maxHealth").value; } catch(_) {}
+                }
+            } catch(_) {}
+        }
+
+        // Infinite Stamina
+        if (infiniteStaminaEnabled && shouldTick("stamina", 0.5)) {
+            try {
+                const pc = getComponent(GTPlayer, PCClass);
+                if (pc && !pc.isNull()) {
+                    try { pc.field("_stamina").value = pc.field("_maxStamina").value; } catch(_) {}
+                    try { pc.field("stamina").value = pc.field("maxStamina").value; } catch(_) {}
+                }
+            } catch(_) {}
+        }
+
+        // No Hunger/Thirst
+        if (noHungerThirstEnabled && shouldTick("hunger", 1.0)) {
+            try {
+                const pc = getComponent(GTPlayer, PCClass);
+                if (pc && !pc.isNull()) {
+                    try { pc.field("_hunger").value = 100; } catch(_) {}
+                    try { pc.field("_thirst").value = 100; } catch(_) {}
+                    try { pc.field("_oxygen").value = 100; } catch(_) {}
+                    try { pc.field("_radiation").value = 0; } catch(_) {}
+                    try { pc.field("hunger").value = 100; } catch(_) {}
+                    try { pc.field("thirst").value = 100; } catch(_) {}
+                    try { pc.field("oxygen").value = 100; } catch(_) {}
+                    try { pc.field("radiation").value = 0; } catch(_) {}
+                }
+            } catch(_) {}
+        }
+
+        // Speed Hack
+        if (speedHackEnabled && shouldTick("speed", 0.1)) {
+            try {
+                const pc = getComponent(GTPlayer, PCClass);
+                if (pc && !pc.isNull()) {
+                    try { pc.field("_moveSpeedMultiplier").value = speedHackMultiplier; } catch(_) {}
+                    try { pc.field("moveSpeedMultiplier").value = speedHackMultiplier; } catch(_) {}
+                    try { pc.field("_sprintMultiplier").value = speedHackMultiplier; } catch(_) {}
+                }
+            } catch(_) {}
+        }
+
+        // Noclip
+        if (noclipEnabled && shouldTick("noclip", 0.05)) {
+            try {
+                if (bodyCollider && !bodyCollider.isNull()) {
+                    const bc = bodyCollider.method("GetComponent", 1).inflate(Collider).invoke();
+                    if (bc && !bc.isNull()) {
+                        try { bc.method("set_enabled").invoke(false); } catch(_) {}
+                    }
+                }
+            } catch(_) {}
+        } else if (!noclipEnabled && shouldTick("noclipRestore", 1.0)) {
+            try {
+                if (bodyCollider && !bodyCollider.isNull()) {
+                    const bc = bodyCollider.method("GetComponent", 1).inflate(Collider).invoke();
+                    if (bc && !bc.isNull()) {
+                        try { bc.method("set_enabled").invoke(true); } catch(_) {}
+                    }
+                }
+            } catch(_) {}
+        }
+
+        // Ghost Mode (invisible)
+        if (ghostModeEnabled && shouldTick("ghost", 0.5)) {
+            try {
+                const renderers = GTPlayer.method("GetComponentsInChildren", 1).inflate(Renderer).invoke(false);
+                if (renderers && !renderers.isNull()) {
+                    for (let i = 0; i < renderers.length; i++) {
+                        try {
+                            const r = renderers.method("get_Item").invoke(i);
+                            if (r && !r.isNull()) r.method("set_enabled").invoke(false);
+                        } catch(_) {}
+                    }
+                }
+            } catch(_) {}
+        } else if (!ghostModeEnabled && shouldTick("ghostRestore", 2.0)) {
+            try {
+                const renderers = GTPlayer.method("GetComponentsInChildren", 1).inflate(Renderer).invoke(false);
+                if (renderers && !renderers.isNull()) {
+                    for (let i = 0; i < renderers.length; i++) {
+                        try {
+                            const r = renderers.method("get_Item").invoke(i);
+                            if (r && !r.isNull()) r.method("set_enabled").invoke(true);
+                        } catch(_) {}
+                    }
+                }
+            } catch(_) {}
+        }
+
+        // Infinite Bag
+        if (infiniteBagEnabled && shouldTick("bag", 1.0)) {
+            try {
+                const localPlayer = NetPlayer.method("get_localPlayer").invoke();
+                if (localPlayer && !localPlayer.isNull()) {
+                    try { localPlayer.field("_maxBagSize").value = 9999; } catch(_) {}
+                    try { localPlayer.field("maxBagSize").value = 9999; } catch(_) {}
+                }
+            } catch(_) {}
+        }
+
+        // Item Rain (continuous)
+        if (itemRainEnabled && shouldTick("itemRain", 0.08)) {
+            try {
+                const localPlayer = NetPlayer.method("get_localPlayer").invoke();
+                if (localPlayer && !localPlayer.isNull()) {
+                    const pos = getTransform(localPlayer).method("get_position").invoke();
+                    const rx = pos.field("x").value + (Math.random() - 0.5) * 10;
+                    const rz = pos.field("z").value + (Math.random() - 0.5) * 10;
+                    const item = itemIDs[Math.floor(Math.random() * itemIDs.length)];
+                    spawnItemAtPos(item, [rx, pos.field("y").value + 15, rz], identityQuaternion);
+                }
+            } catch(_) {}
+        }
+
+        // Goopfish Spam
+        if (goopfishSpamEnabled && shouldTick("goopfish", 0.3)) {
+            try {
+                const localPlayer = NetPlayer.method("get_localPlayer").invoke();
+                if (localPlayer && !localPlayer.isNull()) {
+                    const pos = getTransform(localPlayer).method("get_position").invoke();
+                    spawnItemAtPos("item_goopfish", [pos.field("x").value + (Math.random()-0.5)*4, pos.field("y").value + 1, pos.field("z").value + (Math.random()-0.5)*4], identityQuaternion);
+                }
+            } catch(_) {}
+        }
+
+        // Mimic Spam
+        if (mimicSpamEnabled && shouldTick("mimic", 1.0)) {
+            try {
+                const runner = SFXManager.method("get_instance").invoke()?.field("_runner").value;
+                const localPlayer = NetPlayer.method("get_localPlayer").invoke();
+                if (runner && !runner.isNull() && localPlayer && !localPlayer.isNull()) {
+                    const pos = getTransform(localPlayer).method("get_position").invoke();
+                    PrefabGen.method("SpawnMobAsync", 6).invoke(31, [pos.field("x").value + (Math.random()-0.5)*6, pos.field("y").value, pos.field("z").value + (Math.random()-0.5)*6], identityQuaternion, null, runner, true);
+                }
+            } catch(_) {}
+        }
+
+        // Swarm Spam
+        if (swarmSpamEnabled && shouldTick("swarm", 0.5)) {
+            try {
+                const runner = SFXManager.method("get_instance").invoke()?.field("_runner").value;
+                const localPlayer = NetPlayer.method("get_localPlayer").invoke();
+                if (runner && !runner.isNull() && localPlayer && !localPlayer.isNull()) {
+                    const pos = getTransform(localPlayer).method("get_position").invoke();
+                    PrefabGen.method("SpawnMobAsync", 6).invoke(20, [pos.field("x").value + (Math.random()-0.5)*6, pos.field("y").value + 2, pos.field("z").value + (Math.random()-0.5)*6], identityQuaternion, null, runner, true);
+                }
+            } catch(_) {}
+        }
+
+        // RPC Loops
+        if (rpcLoopKillEnabled && shouldTick("rpcKill", 0.9)) {
+            try {
+                const localPlayer = NetPlayer.method("get_localPlayer").invoke();
+                if (localPlayer && !localPlayer.isNull()) {
+                    selfRPC(() => localPlayer.method("RPC_PlayerHit", 3).invoke(999999, [0, -99999, 0], DamageSourceInfoClass.method("get_Null").invoke()));
+                }
+            } catch(_) {}
+        }
+        if (rpcLoopStunEnabled && shouldTick("rpcStun", 0.8)) {
+            try {
+                const localPlayer = NetPlayer.method("get_localPlayer").invoke();
+                if (localPlayer && !localPlayer.isNull()) {
+                    const pos = getTransform(localPlayer).method("get_position").invoke();
+                    selfRPC(() => localPlayer.method("RPC_PlayerStun").invoke(pos, 999.0, 5.0, 1));
+                }
+            } catch(_) {}
+        }
+        if (rpcLoopBounceEnabled && shouldTick("rpcBounce", 0.7)) {
+            try {
+                const localPlayer = NetPlayer.method("get_localPlayer").invoke();
+                if (localPlayer && !localPlayer.isNull()) {
+                    selfRPC(() => localPlayer.method("RPC_AddForce").invoke([0, 500, 0]));
+                }
+            } catch(_) {}
+        }
+        if (rpcLoopHitEnabled && shouldTick("rpcHit", 0.6)) {
+            try {
+                const localPlayer = NetPlayer.method("get_localPlayer").invoke();
+                if (localPlayer && !localPlayer.isNull()) {
+                    const pos = getTransform(localPlayer).method("get_position").invoke();
+                    const dmgNull = DamageSourceInfoClass.method("get_Null").invoke();
+                    selfRPC(() => localPlayer.method("RPC_PlayerHit", 3).invoke(50, pos, dmgNull));
+                }
+            } catch(_) {}
+        }
+        if (rpcLoopRainbowEnabled && shouldTick("rpcRainbow", 0.15)) {
+            try {
+                const localPlayer = NetPlayer.method("get_localPlayer").invoke();
+                if (localPlayer && !localPlayer.isNull()) {
+                    hueVal = (hueVal + 5) % 360;
+                    selfRPC(() => localPlayer.method("RPC_SetColorHSV").invoke(hueVal, 1.0, 1.0, 1.0));
+                }
+            } catch(_) {}
+        }
+        if (rpcLoopChaosEnabled && shouldTick("rpcChaos", 0.5)) {
+            try {
+                const localPlayer = NetPlayer.method("get_localPlayer").invoke();
+                if (localPlayer && !localPlayer.isNull()) {
+                    const r = Math.random();
+                    if (r < 0.25) selfRPC(() => localPlayer.method("RPC_PlayerStun").invoke(getTransform(localPlayer).method("get_position").invoke(), 999, 3, 1));
+                    else if (r < 0.5) selfRPC(() => localPlayer.method("RPC_AddForce").invoke([(Math.random()-0.5)*1000, 800, (Math.random()-0.5)*1000]));
+                    else if (r < 0.75) selfRPC(() => localPlayer.method("RPC_SetColorHSV").invoke(Math.random()*360, 1, 1, 1));
+                    else selfRPC(() => localPlayer.method("RPC_TagAsStinky").invoke());
+                }
+            } catch(_) {}
+        }
+        if (rpcLoopWantedEnabled && shouldTick("rpcWanted", 2.0)) {
+            try {
+                const localPlayer = NetPlayer.method("get_localPlayer").invoke();
+                if (localPlayer && !localPlayer.isNull()) {
+                    selfRPC(() => localPlayer.method("RPC_SetWantedLevel").invoke(5));
+                }
+            } catch(_) {}
+        }
+        if (rpcLoopFakeDeathEnabled && shouldTick("rpcFakeDeath", 1.5)) {
+            try {
+                const localPlayer = NetPlayer.method("get_localPlayer").invoke();
+                if (localPlayer && !localPlayer.isNull()) {
+                    selfRPC(() => localPlayer.method("RPC_PlayerHit", 3).invoke(999999, getTransform(localPlayer).method("get_position").invoke(), DamageSourceInfoClass.method("get_Null").invoke()));
+                }
+            } catch(_) {}
+        }
+        if (rpcLoopInfMoneyEnabled && shouldTick("rpcInfMoney", 0.9)) {
+            try {
+                rpcAllPlayers((p: any) => {
+                    try { p.method("RPC_AddMoney").invoke(10000000); } catch(_) {}
+                });
+            } catch(_) {}
+        }
+        if (rpcShakeAllEnabled && shouldTick("rpcShake", 0.5)) {
+            try {
+                rpcAllPlayers((p: any) => {
+                    try { p.method("RPC_ShakeScreen").invoke(0.5, 2.0); } catch(_) {}
+                });
+            } catch(_) {}
+        }
+    }, 50);
+
+    // Lock Held Item Position
+    let lockedHeldItemPos: any = null;
+    function updateLockedHeldItem() {
+        if (!lockHeldItemEnabled) return;
+        try {
+            const localPlayer = NetPlayer.method("get_localPlayer").invoke();
+            if (!localPlayer || localPlayer.isNull()) return;
+            const hand = righthand ? rightHandTransform : leftHandTransform;
+            if (!hand || hand.isNull()) return;
+            const heldItem = localPlayer.field("_heldObject").value || localPlayer.field("heldObject").value;
+            if (heldItem && !heldItem.isNull?.()) {
+                const t = getTransform(heldItem);
+                if (t && !t.isNull()) {
+                    if (!lockedHeldItemPos) {
+                        lockedHeldItemPos = t.method("get_position").invoke().clone();
+                    }
+                    t.method("set_position").invoke(lockedHeldItemPos);
+                    t.method("set_rotation").invoke(identityQuaternion);
+                }
+            } else {
+                lockedHeldItemPos = null;
+            }
+        } catch(_) {}
+    }
+
     console.log([
         "===============================================",
         "           SUNNY AC-MENU",
         "===============================================",
         "",
         `   version: ${version}`,
+        "   new mods: god mode, noclip, ghost, speed,`,
+        "   launchers, spawners, RPC loops, guns, etc.",
         "==============================================="
     ].join("\n"));
 
