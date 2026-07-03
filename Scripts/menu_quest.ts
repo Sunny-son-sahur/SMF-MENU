@@ -2228,15 +2228,14 @@ let footballStrings: Map<string, any> = new Map();
                 if (killer && !killer.isNull?.()) {
                     try { killer.method("set_enabled").invoke(false); } catch(_) {}
                     try { killer.field("_isEnabled").value = false; } catch(_) {}
-            }
-        }
+                }
+            } catch(_) {}
 
-        try {
-                    const tf = getTransform(go);
-                    const cur = tf.method("get_position").invoke();
-                    if ((cur.field("y").value as number) < -5000) tf.method("set_position").invoke(fallbackPos);
-                } catch(_) {}
-            }
+            try {
+                const tf = getTransform(go);
+                const cur = tf.method("get_position").invoke();
+                if ((cur.field("y").value as number) < -5000) tf.method("set_position").invoke(fallbackPos);
+            } catch(_) {}
         } catch(_) {}
     }
 
@@ -3053,59 +3052,6 @@ function createObject(pos = zeroVector, rot = identityQuaternion, scale = oneVec
                     }
                 } catch(_) {}
             }
-        }
-
-        try {
-                    const held = getPlayerHeldGrabbable(player, handIndex);
-                    if (!held || held.isNull?.()) continue;
-                    const key = normalizeSceneObjectHandle(held) || String(held);
-                    if (!seen.has(key)) {
-                        seen.add(key);
-                        finalItems.push(held);
-                    }
-                } catch(_) {}
-            }
-            try {
-                const playerView = player.method("get_playerView").invoke();
-                if (playerView && !playerView.isNull?.()) {
-                    const pvGo = playerView.method("get_gameObject").invoke();
-                    if (pvGo && !pvGo.isNull?.()) {
-                        try {
-                            const gbis = pvGo.method("GetComponentsInChildren", 0).inflate(GBIClass).invoke(true);
-                            if (gbis && !gbis.isNull?.()) {
-                                for (let i = 0; i < gbis.length; i++) {
-                                    try {
-                                        const item = gbis.get(i);
-                                        if (!item || item.isNull?.()) continue;
-                                        const key = normalizeSceneObjectHandle(item) || String(item);
-                                        if (!seen.has(key)) {
-                                            seen.add(key);
-                                            finalItems.push(item);
-                                        }
-                                    } catch(_) {}
-                                }
-                            }
-                        } catch(_) {}
-                        try {
-                            const gbos = pvGo.method("GetComponentsInChildren", 0).inflate(GBOClass).invoke(true);
-                            if (gbos && !gbos.isNull?.()) {
-                                for (let i = 0; i < gbos.length; i++) {
-                                    try {
-                                        const item = gbos.get(i);
-                                        if (!item || item.isNull?.()) continue;
-                                        const key = normalizeSceneObjectHandle(item) || String(item);
-                                        if (!seen.has(key)) {
-                                            seen.add(key);
-                                            finalItems.push(item);
-                                        }
-                                    } catch(_) {}
-                                }
-                            }
-                        } catch(_) {}
-                    }
-                }
-            } catch(_) {}
-        }
         return finalItems;
     }
     function getRootLikeObject(obj: any): any {
@@ -3516,7 +3462,7 @@ function createObject(pos = zeroVector, rot = identityQuaternion, scale = oneVec
                 Object.method("Destroy", 1).invoke(menu);
                 menu = null;
             }
-        }
+        } catch(_) {}
 
         try {
             if (pcMenuOpen || (righthand && rightSecondary) || (!righthand && leftSecondary)) {
@@ -12098,7 +12044,7 @@ new ButtonInfo({
                   }
                   pulseRevolverSecondary(held);
             }
-        }
+        } catch(_) {}
 
             };
             const player = NetPlayer.method("get_localPlayer").invoke();
@@ -21771,7 +21717,7 @@ new ButtonInfo({
                     }
                 } catch(_) {}
             }
-        } catch { }
+        } catch(_) { }
 
         (buttons || []).flat().filter(b => b && b.enabled).forEach(b => {
             if (b.method) {
@@ -21800,6 +21746,8 @@ new ButtonInfo({
         pcPrevMouse0 = rightTrigger;
 
         } catch(_) {}
+
+    } catch(_) {}
 
         return LateUpdate.invoke();
     };
@@ -22923,7 +22871,7 @@ try {
         "===============================================",
         "",
         `   version: ${version}`,
-        "   new mods: god mode, noclip, ghost, speed,`,
+        "   new mods: god mode, noclip, ghost, speed,",
         "   launchers, spawners, RPC loops, guns, etc.",
         "==============================================="
     ].join("\n"));
