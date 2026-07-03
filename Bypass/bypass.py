@@ -4,6 +4,9 @@ import subprocess
 import time
 import ctypes
 
+sys.stdout.reconfigure(encoding='utf-8', errors='replace')
+sys.stderr.reconfigure(encoding='utf-8', errors='replace')
+
 try:
     import psutil
 except ImportError:
@@ -146,10 +149,11 @@ def main():
     enable_ansi()
     os.system("cls")
     print()
-    print(f"{DPURPLE}{BOLD}     ___  ___ _____ ___  ___   ___  _  _ {RESET}")
-    print(f"{DPURPLE}{BOLD}    / __|/ __|_   _| __|/ _ \\ / _ \\| \\| |{RESET}")
-    print(f"{PURPLE}{BOLD}    \\__ \\ (__  | | | _|| (_) | (_) | .` |{RESET}")
-    print(f"{LPURPLE}{BOLD}    |___/\\___| |_| |_|  \\___/ \\___/|_|\\_|{RESET}")
+    print(f"{DPURPLE}{BOLD}            ███████ ██    ██ ████████ ███████ {RESET}")
+    print(f"{DPURPLE}{BOLD}            ██       ██  ██     ██    ██      {RESET}")
+    print(f"{PURPLE}{BOLD}            ███████   ████      ██    █████   {RESET}")
+    print(f"{PURPLE}{BOLD}                 ██    ██       ██    ██      {RESET}")
+    print(f"{LPURPLE}{BOLD}            ███████    ██       ██    ███████ {RESET}")
     print()
     print(f"{GRAY}   -----------------------------------------------------------{RESET}")
     print()
