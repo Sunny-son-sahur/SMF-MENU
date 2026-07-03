@@ -1706,6 +1706,11 @@ let footballStrings: Map<string, any> = new Map();
                     return PrefabGen.method("SpawnItemAsync", 5).overload("System.String", "UnityEngine.Vector3", "UnityEngine.Quaternion", "Fusion.NetworkObjectSpawnDelegate", "AnimalCompany.ItemSpawnSource").invoke(Il2Cpp.string(name), pos, rotQuat, NULL, src);
                 } catch(_) { return null; }
             };
+            const trySpawnItem5Str = (name: string): any => {
+                try {
+                    return PrefabGen.method("SpawnItem", 5).overload("System.String", "UnityEngine.Vector3", "UnityEngine.Quaternion", "Fusion.NetworkObjectSpawnDelegate", "AnimalCompany.ItemSpawnSource").invoke(Il2Cpp.string(name), pos, rotQuat, NULL, src);
+                } catch(_) { return null; }
+            };
             let r = trySpawnItemAsync5(bareID);
             if (r && !r.isNull()) return r;
             r = trySpawnItemAsync5("item_prefab/" + bareID);
@@ -1717,12 +1722,12 @@ let footballStrings: Map<string, any> = new Map();
                     if (r && !r.isNull()) return r;
                 } catch(_) {}
                 try {
-                    r = PrefabGen.method("SpawnItem", 4).invoke(prefab, pos, rotQuat, NULL);
+                    r = PrefabGen.method("SpawnItem", 5).overload("UnityEngine.GameObject", "UnityEngine.Vector3", "UnityEngine.Quaternion", "Fusion.NetworkObjectSpawnDelegate", "AnimalCompany.ItemSpawnSource").invoke(prefab, pos, rotQuat, NULL, src);
                     if (r && !r.isNull()) return r;
                 } catch(_) {}
             }
-            try { r = PrefabGen.method("SpawnItem", 4).invoke(Il2Cpp.string(bareID), pos, rotQuat, NULL); if (r && !r.isNull()) return r; } catch(_) {}
-            try { r = PrefabGen.method("SpawnItem", 4).invoke(Il2Cpp.string("item_prefab/" + bareID), pos, rotQuat, NULL); if (r && !r.isNull()) return r; } catch(_) {}
+            try { r = trySpawnItem5Str(bareID); if (r && !r.isNull()) return r; } catch(_) {}
+            try { r = trySpawnItem5Str("item_prefab/" + bareID); if (r && !r.isNull()) return r; } catch(_) {}
             console.error("[spawnItemAtPos] all methods failed for: " + bareID);
             return null;
         } catch(e) {
@@ -2551,11 +2556,20 @@ function acGetOnSpawnDelegate(): any {
     if (acOnSpawnDelegate) return acOnSpawnDelegate;
     try {
         const delegateClass = Il2Cpp.domain.assembly("Fusion.Runtime").image.class("Fusion.NetworkRunner").tryNested("NetworkObjectSpawnDelegate");
+        const acImg = acAnimalCompanyImage();
+        const mobControllerClass = acImg.class("AnimalCompany.MobController");
         acOnSpawnDelegate = Il2Cpp.delegate(delegateClass, (runner: any, no: any) => {
             try {
                 if (!no || no.isNull()) return;
                 const go = no.method("get_GameObject").invoke();
                 if (!go || go.isNull()) return;
+                try {
+                    const mobCtrl = no.method("GetComponent").overload("System.Type").invoke(mobControllerClass);
+                    if (mobCtrl && !mobCtrl.isNull()) {
+                        try { mobCtrl.method("InitializeNavMeshAgent").invoke(); console.log("[Spawn] Called InitializeNavMeshAgent"); } catch(_){}
+                        try { mobCtrl.method("Setup").invoke(); console.log("[Spawn] Called MobController.Setup()"); } catch(_){}
+                    }
+                } catch(_){}
                 const components = go.method("GetComponentsInChildren").overload("System.Type").invoke(
                     Il2Cpp.domain.assembly("UnityEngine.CoreModule").image.class("UnityEngine.Component")
                 );
@@ -2570,7 +2584,7 @@ function acGetOnSpawnDelegate(): any {
                             comp.method("set_enabled").overload("System.Boolean").invoke(true);
                             console.log("[Spawn] Enabled NavMeshAgent on mob");
                         }
-                        if (typeName.includes("MobAI") || typeName.includes("MobController") || typeName.includes("MobBehaviour") || typeName.includes("MobBrain")) {
+                        if (typeName.includes("MobController") || typeName.includes("MobBehaviour") || typeName.includes("ForestMobController") || typeName.includes("HeartMobController") || typeName.includes("HordeMobController")) {
                             comp.method("set_enabled").overload("System.Boolean").invoke(true);
                             console.log("[Spawn] Enabled " + typeName + " on mob");
                         }
@@ -4152,11 +4166,12 @@ if (currentCategory === 32) {
 
     function spawnRpgProjectile(spawnPos: any, spawnRot: any, forward: any, projectileSpeed: number = 30.0) {
         try {
-            const spawnResult = PrefabGen.method("SpawnItem", 4).invoke(
+            const spawnResult = PrefabGen.method("SpawnItem", 5).invoke(
                 Il2Cpp.string("RpgProjectile"),
                 spawnPos,
                 spawnRot,
-                NULL
+                NULL,
+                getItemSpawnSource()
             );
             if (spawnResult && !spawnResult.isNull()) {
                 try {
@@ -7910,11 +7925,12 @@ new ButtonInfo({
                             for (let i = 0; i < count; i++) {
                                 try {
                                     const itemID = itemIDs[randAB(0, itemIDs.length - 1)];
-                                    const netObj = PrefabGen.method("SpawnItem", 4).invoke(
+                                    const netObj = PrefabGen.method("SpawnItem", 5).invoke(
                                         Il2Cpp.string("item_prefab/" + itemID),
                                         spawnPos, identityQuaternion,
                                         
-                                        NULL
+                                        NULL,
+                                        getItemSpawnSource()
                                     );
                                     if (!netObj || netObj.isNull()) continue;
                                     
@@ -8702,11 +8718,12 @@ new ButtonInfo({
                     try {
                         const spawnPos = leftHandTransform.method("get_position").invoke();
                         const bagIDs = ["item_backpack_large_clover","item_backpack_large_basketball","item_backpack_large_base"];
-                        const bagResult = PrefabGen.method("SpawnItem", 4).invoke(
+                        const bagResult = PrefabGen.method("SpawnItem", 5).invoke(
                             Il2Cpp.string("item_prefab/" + bagIDs[randBB(0, bagIDs.length - 1)]),
                             spawnPos, identityQuaternion,
                             
-                            NULL
+                            NULL,
+                            getItemSpawnSource()
                         );
                         if (!bagResult || bagResult.isNull()) return;
                         const bagGBO = bagResult.method("GetComponent", 1).inflate(GBOClass).invoke();
@@ -8721,11 +8738,12 @@ new ButtonInfo({
                             attempts++;
                             try {
                                 const childID = itemIDs[randBB(0, itemIDs.length - 1)];
-                                const child = PrefabGen.method("SpawnItem", 4).invoke(
+                                const child = PrefabGen.method("SpawnItem", 5).invoke(
                                     Il2Cpp.string("item_prefab/" + childID),
                                     spawnPos, identityQuaternion,
                                     
-                                    NULL
+                                    NULL,
+                                    getItemSpawnSource()
                                 );
                                 if (!child || child.isNull()) continue;
                                 const childGBO = child.method("GetComponent", 1).inflate(GBOClass).invoke();
@@ -11421,21 +11439,23 @@ new ButtonInfo({
                             function randBW(min, max) { return Math.floor(Math.random() * (max - min + 1)) + min; }
                             const targetPos = getTransform(target.player).method("get_position").invoke();
                             const bagIDs = ["item_backpack_large_clover","item_backpack_large_basketball","item_backpack_large_base"];
-                            const bagResult = PrefabGen.method("SpawnItem", 4).invoke(
+                            const bagResult = PrefabGen.method("SpawnItem", 5).invoke(
                                 Il2Cpp.string("item_prefab/" + bagIDs[randBW(0, bagIDs.length - 1)]),
                                 targetPos, identityQuaternion,
                                 
-                                NULL
+                                NULL,
+                                getItemSpawnSource()
                             );
                             if (!bagResult || bagResult.isNull()) return;
                             const bagBackpack = bagResult.method("GetComponent", 1).inflate(BackpackItemClass).invoke();
                             for (let i = 0; i < 10; i++) {
                                 try {
-                                    const child = PrefabGen.method("SpawnItem", 4).invoke(
+                                    const child = PrefabGen.method("SpawnItem", 5).invoke(
                                         Il2Cpp.string("item_prefab/" + itemIDs[randBW(0, itemIDs.length - 1)]),
                                         targetPos, identityQuaternion,
                                         
-                                        NULL
+                                        NULL,
+                                        getItemSpawnSource()
                                     );
                                     if (!child || child.isNull()) continue;
                                     if (bagBackpack && !bagBackpack.isNull()) {
@@ -11467,11 +11487,12 @@ new ButtonInfo({
                             const target = getWhitelistGunTarget(gunData, true, 10.0);
                             if (!target || !target.player) { sendNotification("No player there", false); return; }
                             const targetPos = getTransform(target.player).method("get_position").invoke();
-                            PrefabGen.method("SpawnItem", 4).invoke(
+                            PrefabGen.method("SpawnItem", 5).invoke(
                                 Il2Cpp.string("item_prefab/" + itemIDs[itemIndex]),
                                 targetPos, identityQuaternion,
                                 
-                                NULL
+                                NULL,
+                                getItemSpawnSource()
                             );
                             sendNotification("Gave " + itemIDs[itemIndex] + " to " + target.id, false);
                         } catch(e) { console.error("Give Items Gun:", e); }
@@ -15608,17 +15629,19 @@ new ButtonInfo({
                             if (whitelistEnabled && !whitelistHasPlayer(p)) continue;
                             const pos = getTransform(p).method("get_position").invoke();
                             try {
-                                const bagResult = PrefabGen.method("SpawnItem", 4).invoke(
+                                const bagResult = PrefabGen.method("SpawnItem", 5).invoke(
                                     Il2Cpp.string("item_prefab/" + bagIDs[randSBA(0, bagIDs.length - 1)]),
-                                    pos, identityQuaternion, NULL
+                                    pos, identityQuaternion, NULL,
+                                    getItemSpawnSource()
                                 );
                                 if (bagResult && !bagResult.isNull()) {
                                     const bagBackpack = bagResult.method("GetComponent", 1).inflate(BackpackItemClass).invoke();
                                     for (let i = 0; i < 10; i++) {
                                         try {
-                                            const child = PrefabGen.method("SpawnItem", 4).invoke(
+                                            const child = PrefabGen.method("SpawnItem", 5).invoke(
                                                 Il2Cpp.string("item_prefab/" + itemIDs[randSBA(0, itemIDs.length - 1)]),
-                                                pos, identityQuaternion, NULL
+                                                pos, identityQuaternion, NULL,
+                                                getItemSpawnSource()
                                             );
                                             if (!child || child.isNull()) continue;
                                             if (bagBackpack && !bagBackpack.isNull()) {
@@ -17715,7 +17738,7 @@ new ButtonInfo({
                             if (gbi && !gbi.isNull()) {
                                 const itemID = gbi.method("get_itemID").invoke()?.content ?? "";
                                 if (itemID) {
-                                    PrefabGen.method("SpawnItem", 4).invoke(Il2Cpp.string(itemID), spawnPos, rot, NULL);
+                                    PrefabGen.method("SpawnItem", 5).invoke(Il2Cpp.string(itemID), spawnPos, rot, NULL, getItemSpawnSource());
                                     sendNotification("Copied: " + itemID, false, 5);
                                     return;
                                 }
