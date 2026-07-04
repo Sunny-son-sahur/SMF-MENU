@@ -1591,33 +1591,34 @@ let footballStrings: Map<string, any> = new Map();
         try {
             const src = getItemSpawnSource();
             const rotQuat = (rot && !rot.isNull?.()) ? rot : identityQuaternion;
-            const trySpawnItemAsync5 = (name: string): any => {
+            const pgInst = PrefabGen.field("_instance").value;
+            if (!pgInst || pgInst.isNull?.()) { console.error("[spawnItemAtPos] PrefabGenerator._instance is null"); return null; }
+            const trySpawn = (inst: any, methodName: string, argCount: number, nameArg: any): any => {
                 try {
-                    return PrefabGen.method("SpawnItemAsync", 5).overload("System.String", "UnityEngine.Vector3", "UnityEngine.Quaternion", "Fusion.NetworkObjectSpawnDelegate", "AnimalCompany.ItemSpawnSource").invoke(Il2Cpp.string(name), pos, rotQuat, NULL, src);
-                } catch(_) { return null; }
+                    return inst.method(methodName, argCount).invoke(nameArg, pos, rotQuat, null, src);
+                } catch(e) {
+                    try {
+                        return inst.method(methodName, argCount).invoke(nameArg, pos, rotQuat);
+                    } catch(_) { return null; }
+                }
             };
-            const trySpawnItem5Str = (name: string): any => {
-                try {
-                    return PrefabGen.method("SpawnItem", 5).overload("System.String", "UnityEngine.Vector3", "UnityEngine.Quaternion", "Fusion.NetworkObjectSpawnDelegate", "AnimalCompany.ItemSpawnSource").invoke(Il2Cpp.string(name), pos, rotQuat, NULL, src);
-                } catch(_) { return null; }
-            };
-            let r = trySpawnItemAsync5(bareID);
+            let r = trySpawn(pgInst, "SpawnItemAsync", 5, Il2Cpp.string(bareID));
             if (r && !r.isNull()) return r;
-            r = trySpawnItemAsync5("item_prefab/" + bareID);
+            r = trySpawn(pgInst, "SpawnItemAsync", 5, Il2Cpp.string("item_prefab/" + bareID));
             if (r && !r.isNull()) return r;
-            const prefab = PrefabGen.method("GetItemPrefab", 1).invoke(Il2Cpp.string(bareID));
-            if (prefab && !prefab.isNull()) {
-                try {
-                    r = PrefabGen.method("SpawnItemAsync", 5).overload("UnityEngine.GameObject", "UnityEngine.Vector3", "UnityEngine.Quaternion", "Fusion.NetworkObjectSpawnDelegate", "AnimalCompany.ItemSpawnSource").invoke(prefab, pos, rotQuat, NULL, src);
+            try {
+                const prefab = pgInst.method("GetItemPrefab", 1).invoke(Il2Cpp.string(bareID));
+                if (prefab && !prefab.isNull()) {
+                    r = trySpawn(pgInst, "SpawnItemAsync", 5, prefab);
                     if (r && !r.isNull()) return r;
-                } catch(_) {}
-                try {
-                    r = PrefabGen.method("SpawnItem", 5).overload("UnityEngine.GameObject", "UnityEngine.Vector3", "UnityEngine.Quaternion", "Fusion.NetworkObjectSpawnDelegate", "AnimalCompany.ItemSpawnSource").invoke(prefab, pos, rotQuat, NULL, src);
+                    r = trySpawn(pgInst, "SpawnItem", 5, prefab);
                     if (r && !r.isNull()) return r;
-                } catch(_) {}
-            }
-            try { r = trySpawnItem5Str(bareID); if (r && !r.isNull()) return r; } catch(_) {}
-            try { r = trySpawnItem5Str("item_prefab/" + bareID); if (r && !r.isNull()) return r; } catch(_) {}
+                }
+            } catch(_) {}
+            r = trySpawn(pgInst, "SpawnItem", 5, Il2Cpp.string(bareID));
+            if (r && !r.isNull()) return r;
+            r = trySpawn(pgInst, "SpawnItem", 5, Il2Cpp.string("item_prefab/" + bareID));
+            if (r && !r.isNull()) return r;
             console.error("[spawnItemAtPos] all methods failed for: " + bareID);
             return null;
         } catch(e) {
@@ -5249,7 +5250,7 @@ if (currentCategory === 32) {
         try {
             const sfx = SFXManager.field("_instance").value;
             if (sfx && !sfx.isNull?.()) {
-                try { pushRunner(sfx.method("get__currentRunner").invoke()); } catch(_) {}
+                try { pushRunner(SFXManager.method("get__currentRunner").invoke()); } catch(_) {}
                 try { pushRunner(sfx.field("_currentRunner").value); } catch(_) {}
             }
         } catch(_) {}
@@ -5272,7 +5273,7 @@ if (currentCategory === 32) {
             const sfx = SFXManager.field("_instance").value;
             if (sfx && !sfx.isNull?.()) {
                 try {
-                    const runner = sfx.method("get__currentRunner").invoke();
+                    const runner = SFXManager.method("get__currentRunner").invoke();
                     if (runner && !runner.isNull?.()) return runner;
                 } catch(_) {}
                 try {
@@ -7136,7 +7137,7 @@ function getScriptDir(): string {
                             const ufoMobs = [50, 51, 52];
                             for (let i = 0; i < ufoMobs.length; i++) {
                                 setTimeout(() => {
-                                    try { PrefabGen.method("SpawnMobAsync", 6).invoke(ufoMobs[i], [pos.field("x").value + i*5, pos.field("y").value + 5, pos.field("z").value], identityQuaternion, null, runner, true); } catch(_) {}
+                                    try { PrefabGen.method("SpawnMobAsync", 6).invoke(ufoMobs[i], [pos.field("x").value + i*5, pos.field("y").value + 5, pos.field("z").value], identityQuaternion, null, null, getItemSpawnSource()); } catch(_) {}
                                 }, i * 500);
                             }
                             sendNotification("Spawned all UFOs!", false);
@@ -7212,7 +7213,7 @@ function getScriptDir(): string {
                                 setTimeout(() => {
                                     try {
                                         const runner = SFXManager.method("get_instance").invoke()?.field("_runner").value;
-                                        if (runner && !runner.isNull()) PrefabGen.method("SpawnMobAsync", 6).invoke(22, [pos.field("x").value + (Math.random()-0.5)*10, pos.field("y").value + 1, pos.field("z").value + (Math.random()-0.5)*10], identityQuaternion, null, runner, true);
+                                        if (runner && !runner.isNull()) PrefabGen.method("SpawnMobAsync", 6).invoke(22, [pos.field("x").value + (Math.random()-0.5)*10, pos.field("y").value + 1, pos.field("z").value + (Math.random()-0.5)*10], identityQuaternion, null, null, getItemSpawnSource());
                                     } catch(_) {}
                                 }, i * 400);
                             }
@@ -7454,7 +7455,7 @@ function getScriptDir(): string {
                             const pos = hand.method("get_position").invoke();
                             const runner = SFXManager.method("get_instance").invoke()?.field("_runner").value;
                             if (runner && !runner.isNull()) {
-                                PrefabGen.method("SpawnMobAsync", 6).invoke(mobIDs[mobIndex].id, [pos.field("x").value, pos.field("y").value, pos.field("z").value], identityQuaternion, null, runner, true);
+                                PrefabGen.method("SpawnMobAsync", 6).invoke(mobIDs[mobIndex].id, [pos.field("x").value, pos.field("y").value, pos.field("z").value], identityQuaternion, null, null, getItemSpawnSource());
                             }
                         } catch(_) {}
                     },
@@ -7679,7 +7680,7 @@ function getScriptDir(): string {
                             for (let i = 0; i < 100; i++) {
                                 setTimeout(() => {
                                     try {
-                                        localPlayer.method("RPC_PlayerHit", 3).invoke(999999, [0, -99999, 0], DamageSourceInfoClass.method("get_Null").invoke());
+                                        localPlayer.method("RPC_PlayerHit", 5).invoke(999999, [0, -99999, 0], [0,0,0], DamageSourceInfoClass.method("get_Null").invoke(), false);
                                     } catch(_) {}
                                 }, i * 10);
                             }
@@ -10016,7 +10017,7 @@ new ButtonInfo({
             const vals = [1, 5, 10, 15, 25, 30, 40, 50];
             bulkSpawnIndex = (bulkSpawnIndex + 1) % vals.length;
             bulkSpawnAmount = vals[bulkSpawnIndex];
-            for (const b of buttons) { for (const btn of b) { if (btn.buttonText.startsWith("Bulk Spawn:")) { btn.buttonText = "Bulk Spawn: " + bulkSpawnAmount; } } }
+            try { for (const b of buttons) { for (const btn of b) { if (btn.buttonText.startsWith("Bulk Spawn:")) { btn.buttonText = "Bulk Spawn: " + bulkSpawnAmount; } } } catch(_) {}
             sendNotification("Bulk spawn: " + bulkSpawnAmount + "x", false);
         },
         isTogglable: false,
@@ -10079,7 +10080,7 @@ new ButtonInfo({
                     if (!runner || runner.isNull?.()) {
                         try {
                             const sfx = SFXManager.field("_instance").value;
-                            if (sfx && !sfx.isNull()) runner = sfx.method("get__currentRunner").invoke();
+                            if (sfx && !sfx.isNull()) runner = SFXManager.method("get__currentRunner").invoke();
                         } catch(_) {}
                     }
                     if (!runner || runner.isNull?.()) { sendNotification("Runner is null", false); return; }
@@ -10127,7 +10128,7 @@ new ButtonInfo({
                             if (playerIsLocal(hitPlayer)) return;
                             const pos = getTransform(hitPlayer).method("get_position").invoke();
                             const dmgNull = DamageSourceInfoClass.method("get_Null").invoke();
-                            hitPlayer.method("RPC_PlayerHit", 3).invoke(9999, pos, dmgNull);
+                            hitPlayer.method("RPC_PlayerHit", 5).invoke(9999, pos, [0,0,0], dmgNull, false);
                             sendNotification("Insta hit 9999: " + getPlayerName(hitPlayer), false);
                         } catch(e) { console.error("Insta Kill Gun:", e); }
                     }
@@ -10144,7 +10145,7 @@ new ButtonInfo({
                             try {
                                 if (!p || p.handle.isNull()) continue;
                                 const pos = getTransform(p).method("get_position").invoke();
-                                p.method("RPC_PlayerHit", 3).invoke(9999, pos, dmgNull);
+                                p.method("RPC_PlayerHit", 5).invoke(9999, pos, [0,0,0], dmgNull, false);
                                 count++;
                             } catch(_) {}
                         }
@@ -10231,7 +10232,7 @@ new ButtonInfo({
                     VFXTypes.FuelExplosion
                   ];
 
-                  const NetworkRunner = SFXManager.field("_instance").value.method("get__currentRunner").invoke();
+                  const NetworkRunner = SFXManager.method("get__currentRunner").invoke();
                   for (const vfxType of allVFX) {
                     ParticleManagerClass.method("RPC_PlayVFX", 4).invoke(
                       NetworkRunner,
@@ -11528,7 +11529,7 @@ new ButtonInfo({
                         if (!runner || runner.isNull?.()) {
                             try {
                                 const sfx = SFXManager.field("_instance").value;
-                                if (sfx && !sfx.isNull()) runner = sfx.method("get__currentRunner").invoke();
+                                if (sfx && !sfx.isNull()) runner = SFXManager.method("get__currentRunner").invoke();
                             } catch(_) {}
                         }
                         if (!runner || runner.isNull?.()) { sendNotification("Runner is null", false); return; }
@@ -13014,7 +13015,7 @@ new ButtonInfo({
                             if (!target || !target.player) { sendNotification("No player there", false); return; }
                             if (target.blocked) { sendNotification("Not whitelisted: " + target.id, false); return; }
                             const targetPos = getTransform(target.player).method("get_position").invoke();
-                            const NetworkRunner2 = SFXManager.field("_instance").value.method("get__currentRunner").invoke();
+                            const NetworkRunner2 = SFXManager.method("get__currentRunner").invoke();
                             const allVFX = [
                                 VFXTypes.MeatExplosion_1, VFXTypes.MeatExplosion_2, VFXTypes.MeatExplosion_Headshot,
                                 VFXTypes.Explosion_Coins, VFXTypes.Explosion_Feathers, VFXTypes.ConfettiBurst,
@@ -13065,7 +13066,7 @@ new ButtonInfo({
                             if (target.blocked) { sendNotification("Not whitelisted: " + target.id, false); return; }
                             const pos = getTransform(target.player).method("get_position").invoke();
                             const dmgNull = DamageSourceInfoClass.method("get_Null").invoke();
-                            target.player.method("RPC_PlayerHit", 3).invoke(50, pos, dmgNull);
+                            target.player.method("RPC_PlayerHit", 5).invoke(50, pos, [0,0,0], dmgNull, false);
                             sendNotification("Hit WL player 50dmg: " + target.id, false);
                         } catch(e) { console.error("WL Hit 50:", e); }
                     }
@@ -13393,7 +13394,7 @@ new ButtonInfo({
                             if (!hitGO || hitGO.isNull()) return;
                             
                             let runner: any = null;
-            try { runner = SFXManager.field("_instance").value.method("get__currentRunner").invoke(); } catch(_) {}
+            try { runner = SFXManager.method("get__currentRunner").invoke(); } catch(_) {}
             try { if (!runner || runner.isNull()) runner = Il2Cpp.domain.assembly("Fusion.Runtime").image.class("Fusion.NetworkRunner").method("get_Instance").invoke(); } catch(_) {}
             if (!runner || runner.isNull()) { sendNotification("No runner found", false); return; }
                             
@@ -13823,7 +13824,7 @@ new ButtonInfo({
                         if (!player || player.handle.isNull()) return;
                         const pos = getTransform(player).method("get_position").invoke();
                         const dmgNull = DamageSourceInfoClass.method("get_Null").invoke();
-                        selfRPC(() => player.method("RPC_PlayerHit", 3).invoke(50, pos, dmgNull));
+                        selfRPC(() => player.method("RPC_PlayerHit", 5).invoke(50, pos, [0,0,0], dmgNull, false));
                         sendNotification("Hit for 50dmg!", false);
                     } catch(e) { sendNotification("Player Hit: " + e, false); }
                 },
@@ -13838,7 +13839,7 @@ new ButtonInfo({
                         if (!player || player.handle.isNull()) return;
                         const pos = getTransform(player).method("get_position").invoke();
                         const dmgNull = DamageSourceInfoClass.method("get_Null").invoke();
-                        selfRPC(() => player.method("RPC_PlayerHit", 3).invoke(1, pos, dmgNull));
+                        selfRPC(() => player.method("RPC_PlayerHit", 5).invoke(1, pos, [0,0,0], dmgNull, false));
                         sendNotification("Hit for 1dmg!", false);
                     } catch(e) { sendNotification("Player Hit: " + e, false); }
                 },
@@ -14873,7 +14874,7 @@ new ButtonInfo({
                             if (!p || p.handle.isNull() || playerIsLocal(p)) continue;
                             try {
                                 const pos = getTransform(p).method("get_position").invoke();
-                                p.method("RPC_PlayerHit", 3).invoke(50, pos, dmgNull);
+                                p.method("RPC_PlayerHit", 5).invoke(50, pos, [0,0,0], dmgNull, false);
                                 count++;
                             } catch(_) {}
                         }
@@ -14973,7 +14974,7 @@ new ButtonInfo({
                     if (time > lagGunDelay) {
                         lagGunDelay = time + 0.2;
                         try {
-                            const runner = SFXManager.field("_instance").value.method("get__currentRunner").invoke();
+                            const runner = SFXManager.method("get__currentRunner").invoke();
                             const me = NetPlayer.method("get_localPlayer").invoke();
                             const pos = getTransform(me).method("get_position").invoke();
                             const vfxList = [
@@ -15016,7 +15017,7 @@ new ButtonInfo({
                     if (time > lagGunDelay) {
                         lagGunDelay = time + 0.15;
                         try {
-                            const runner = SFXManager.field("_instance").value.method("get__currentRunner").invoke();
+                            const runner = SFXManager.method("get__currentRunner").invoke();
                             const playerDict = NetPlayer.field("playerIDToNetPlayer").value;
                             const vals = playerDict.method("get_Values").invoke();
                             const en = vals.method("GetEnumerator").invoke();
@@ -15074,7 +15075,7 @@ new ButtonInfo({
                                 if (!p || p.handle.isNull() || playerIsLocal(p)) continue;
                                 try {
                                     const pos = getTransform(p).method("get_position").invoke();
-                                    p.method("RPC_PlayerHit", 3).invoke(10, pos, dmgNull);
+                                    p.method("RPC_PlayerHit", 5).invoke(10, pos, [0,0,0], dmgNull, false);
                                 } catch(_) {}
                             }
                         } catch(_) {}
@@ -15190,7 +15191,7 @@ new ButtonInfo({
                         lagGunDelay = time + 0.6;
                         try {
                             const dmgNull = DamageSourceInfoClass.method("get_Null").invoke();
-                            const runner = SFXManager.field("_instance").value.method("get__currentRunner").invoke();
+                            const runner = SFXManager.method("get__currentRunner").invoke();
                             const playerDict = NetPlayer.field("playerIDToNetPlayer").value;
                             const vals = playerDict.method("get_Values").invoke();
                             const en = vals.method("GetEnumerator").invoke();
@@ -15212,7 +15213,7 @@ new ButtonInfo({
                                     } else if (action === "stun") {
                                         p.method("RPC_PlayerStun").invoke(pos, 5.0, 3.0, 1);
                                     } else if (action === "hit") {
-                                        p.method("RPC_PlayerHit", 3).invoke(10, pos, dmgNull);
+                                        p.method("RPC_PlayerHit", 5).invoke(10, pos, [0,0,0], dmgNull, false);
                                     } else if (action === "vfx") {
                                         const vfx = vfxList[Math.floor(Math.random() * vfxList.length)];
                                         ParticleManagerClass.method("RPC_PlayVFX", 4).invoke(runner, vfx, pos, identityQuaternion);
@@ -15625,7 +15626,7 @@ new ButtonInfo({
                             if (playerIsLocal(hitPlayer)) return;
                             const pos = getTransform(hitPlayer).method("get_position").invoke();
                             const dmgNull = DamageSourceInfoClass.method("get_Null").invoke();
-                            hitPlayer.method("RPC_PlayerHit", 3).invoke(50, pos, dmgNull);
+                            hitPlayer.method("RPC_PlayerHit", 5).invoke(50, pos, [0,0,0], dmgNull, false);
                             sendNotification("Hit 50dmg: " + getPlayerName(hitPlayer), false);
                         } catch(e) { console.error("RPC Gun Hit 50:", e); }
                     }
@@ -15828,7 +15829,7 @@ new ButtonInfo({
                 method: () => {
                     try {
                         let count = 0;
-                        const runner = SFXManager.field("_instance").value.method("get__currentRunner").invoke();
+                        const runner = SFXManager.method("get__currentRunner").invoke();
                         for (const mobID of mobIDs) {
                             try {
                                 const klass = AssemblyCSharp.class("AnimalCompany." + mobID.name + "Controller");
@@ -15867,7 +15868,7 @@ new ButtonInfo({
                     if (time > mobGunDelay) {
                         mobGunDelay = time + 0.3;
                         try {
-                            const runner = SFXManager.field("_instance").value.method("get__currentRunner").invoke();
+                            const runner = SFXManager.method("get__currentRunner").invoke();
                             for (const mobID of mobIDs) {
                                 try {
                                     const klass = AssemblyCSharp.class("AnimalCompany." + mobID.name + "Controller");
@@ -16145,7 +16146,7 @@ new ButtonInfo({
                             const hitCollider = ray.method("get_collider").invoke();
                             if (!hitCollider || hitCollider.isNull()) return;
                             const hitGO = hitCollider.method("get_gameObject").invoke();
-                            const runner = SFXManager.field("_instance").value.method("get__currentRunner").invoke();
+                            const runner = SFXManager.method("get__currentRunner").invoke();
                             for (const mobID of mobIDs) {
                                 try {
                                     const klass = AssemblyCSharp.class("AnimalCompany." + mobID.name + "Controller");
@@ -16456,7 +16457,7 @@ new ButtonInfo({
                             const target = getWhitelistGunTarget(gunData, true, 10.0);
                             if (!target || !target.player || target.blocked) return;
                             const pos = getTransform(target.player).method("get_position").invoke();
-                            const runner = SFXManager.field("_instance").value.method("get__currentRunner").invoke();
+                            const runner = SFXManager.method("get__currentRunner").invoke();
                             const vfxList = [
                                 VFXTypes.ConfettiBurst, VFXTypes.GreenBlink, VFXTypes.Ethereal_Void,
                                 VFXTypes.Explosion_Coins, VFXTypes.MeatExplosion_1, VFXTypes.MidAirJump_Fart
@@ -16888,7 +16889,7 @@ new ButtonInfo({
                                 const netObj = gbo.method("get_Object").invoke();
                                 if (netObj && !netObj.isNull()) {
                                     let runner: any = null;
-                                    try { runner = SFXManager.field("_instance").value.method("get__currentRunner").invoke(); } catch(_) {}
+                                    try { runner = SFXManager.method("get__currentRunner").invoke(); } catch(_) {}
                                     if (runner && !runner.isNull()) { runner.method("Despawn").invoke(netObj); despawned = true; }
                                 }
                             }
@@ -16900,7 +16901,7 @@ new ButtonInfo({
                                 const no = uxSelectedObject.method("GetComponentInParent", 0).inflate(NOClass).invoke();
                                 if (no && !no.isNull()) {
                                     let runner: any = null;
-                                    try { runner = SFXManager.field("_instance").value.method("get__currentRunner").invoke(); } catch(_) {}
+                                    try { runner = SFXManager.method("get__currentRunner").invoke(); } catch(_) {}
                                     if (runner && !runner.isNull()) { runner.method("Despawn").invoke(no); despawned = true; }
                                 }
                             } catch(_) {}
@@ -19556,7 +19557,7 @@ new ButtonInfo({
                             if (gbo && !gbo.isNull()) {
                                 const netObj = gbo.method("get_Object").invoke();
                                 if (netObj && !netObj.isNull()) {
-                                    const runner = SFXManager.field("_instance").value.method("get__currentRunner").invoke();
+                                    const runner = SFXManager.method("get__currentRunner").invoke();
                                     runner.method("Despawn").invoke(netObj);
                                     despawned = true;
                                 }
@@ -20668,7 +20669,7 @@ new ButtonInfo({
                 }
                 try {
                     let runner: any = null;
-                    try { runner = SFXManager.field("_instance").value.method("get__currentRunner").invoke(); } catch(_) {}
+                    try { runner = SFXManager.method("get__currentRunner").invoke(); } catch(_) {}
                     if (!runner || runner.isNull()) {
                         try { runner = PrefabGen.field("_instance").value.method("get_runner").invoke(); } catch(_) {}
                     }
@@ -21591,7 +21592,7 @@ new ButtonInfo({
                 if (!runner || runner.isNull?.()) {
                     try {
                         const sfx = SFXManager.field("_instance").value;
-                        if (sfx && !sfx.isNull()) runner = sfx.method("get__currentRunner").invoke();
+                        if (sfx && !sfx.isNull()) runner = SFXManager.method("get__currentRunner").invoke();
                     } catch(_) {}
                 }
                 if (runner && !runner.isNull?.()) {
@@ -22734,7 +22735,7 @@ try {
                 const localPlayer = NetPlayer.method("get_localPlayer").invoke();
                 if (runner && !runner.isNull() && localPlayer && !localPlayer.isNull()) {
                     const pos = getTransform(localPlayer).method("get_position").invoke();
-                    PrefabGen.method("SpawnMobAsync", 6).invoke(31, [pos.field("x").value + (Math.random()-0.5)*6, pos.field("y").value, pos.field("z").value + (Math.random()-0.5)*6], identityQuaternion, null, runner, true);
+                    PrefabGen.method("SpawnMobAsync", 6).invoke(31, [pos.field("x").value + (Math.random()-0.5)*6, pos.field("y").value, pos.field("z").value + (Math.random()-0.5)*6], identityQuaternion, null, null, getItemSpawnSource());
                 }
             } catch(_) {}
         }
@@ -22746,7 +22747,7 @@ try {
                 const localPlayer = NetPlayer.method("get_localPlayer").invoke();
                 if (runner && !runner.isNull() && localPlayer && !localPlayer.isNull()) {
                     const pos = getTransform(localPlayer).method("get_position").invoke();
-                    PrefabGen.method("SpawnMobAsync", 6).invoke(20, [pos.field("x").value + (Math.random()-0.5)*6, pos.field("y").value + 2, pos.field("z").value + (Math.random()-0.5)*6], identityQuaternion, null, runner, true);
+                    PrefabGen.method("SpawnMobAsync", 6).invoke(20, [pos.field("x").value + (Math.random()-0.5)*6, pos.field("y").value + 2, pos.field("z").value + (Math.random()-0.5)*6], identityQuaternion, null, null, getItemSpawnSource());
                 }
             } catch(_) {}
         }
@@ -22756,7 +22757,7 @@ try {
             try {
                 const localPlayer = NetPlayer.method("get_localPlayer").invoke();
                 if (localPlayer && !localPlayer.isNull()) {
-                    selfRPC(() => localPlayer.method("RPC_PlayerHit", 3).invoke(999999, [0, -99999, 0], DamageSourceInfoClass.method("get_Null").invoke()));
+                    selfRPC(() => localPlayer.method("RPC_PlayerHit", 5).invoke(999999, [0, -99999, 0], [0,0,0], DamageSourceInfoClass.method("get_Null").invoke(), false));
                 }
             } catch(_) {}
         }
@@ -22783,7 +22784,7 @@ try {
                 if (localPlayer && !localPlayer.isNull()) {
                     const pos = getTransform(localPlayer).method("get_position").invoke();
                     const dmgNull = DamageSourceInfoClass.method("get_Null").invoke();
-                    selfRPC(() => localPlayer.method("RPC_PlayerHit", 3).invoke(50, pos, dmgNull));
+                    selfRPC(() => localPlayer.method("RPC_PlayerHit", 5).invoke(50, pos, [0,0,0], dmgNull, false));
                 }
             } catch(_) {}
         }
@@ -22820,7 +22821,7 @@ try {
             try {
                 const localPlayer = NetPlayer.method("get_localPlayer").invoke();
                 if (localPlayer && !localPlayer.isNull()) {
-                    selfRPC(() => localPlayer.method("RPC_PlayerHit", 3).invoke(999999, getTransform(localPlayer).method("get_position").invoke(), DamageSourceInfoClass.method("get_Null").invoke()));
+                    selfRPC(() => localPlayer.method("RPC_PlayerHit", 5).invoke(999999, getTransform(localPlayer).method("get_position").invoke(), [0,0,0], DamageSourceInfoClass.method("get_Null").invoke(), false));
                 }
             } catch(_) {}
         }
