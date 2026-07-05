@@ -2465,13 +2465,11 @@ function acGetOnSpawnDelegate(): any {
                             console.log("[Spawn] Called ApplySectorsFromSpawnPosition");
                         } catch(e) { console.log("[Spawn] ApplySectorsFromSpawnPosition failed: " + e); }
                         try {
-                            const boolClass = Il2Cpp.domain.assembly("mscorlib").image.class("System.Boolean");
-                            const trueVal = Il2Cpp.pointer(boolClass, 1);
-                            mobCtrl.method("SetRoamingTarget", 1).invoke(trueVal);
+                            mobCtrl.method("SetRoamingTarget", 1).overload("System.Boolean").invoke(true);
                             console.log("[Spawn] Called SetRoamingTarget(true)");
                         } catch(e) { console.log("[Spawn] SetRoamingTarget failed: " + e); }
                         try {
-                            mobCtrl.method("SetNavAgentStopped").invoke(false);
+                            mobCtrl.method("SetNavAgentStopped").overload("System.Boolean").invoke(false);
                             console.log("[Spawn] Called SetNavAgentStopped(false)");
                         } catch(_){}
                     }
@@ -2523,13 +2521,8 @@ function spawnMobAtPos(mobEntry: { name: string; id: number }, pos: any, rot: an
                 } catch(_){}
             }
         } catch(_){}
-        const rawName = String(mobEntry.name || "").replace(/^mob_prefab\//, "").replace(/Controller$/, "").replace(/_?Controller$/, "");
-        const candidates = [rawName, rawName.replace(/\?Controller$/, "")];
-        let mobId = null;
-        for (const c of candidates) {
-            try { mobId = acAnimalCompanyImage().class("AnimalCompany.MobID").field(c).value; if (mobId !== null && mobId !== undefined) break; } catch(_){}
-        }
-        if (mobId === null || mobId === undefined) {
+        const mobIdInt = mobEntry.id;
+        if (mobIdInt === null || mobIdInt === undefined) {
             console.log("[Spawn] Could not resolve MobID for: " + mobEntry.name);
             return false;
         }
@@ -2548,20 +2541,15 @@ function spawnMobAtPos(mobEntry: { name: string; id: number }, pos: any, rot: an
             return false;
         }
         const spawnDelegate = onSpawnDelegate || nullRef;
+        const src = getItemSpawnSource();
         try {
-            pgClass.method("SpawnMobAsync", 6).overload(
-                "AnimalCompany.MobID", "UnityEngine.Vector3", "UnityEngine.Quaternion",
-                "Fusion.NetworkRunner.OnBeforeSpawned", "Fusion.NetworkObjectSpawnDelegate", "System.String"
-            ).invoke(mobId, pos, rot || identityQuaternion, delegate, spawnDelegate, Il2Cpp.string("mod"));
+            pgClass.method("SpawnMobAsync", 6).invoke(mobIdInt, pos, rot || identityQuaternion, delegate, null, src);
         } catch(innerErr) {
             const errStr = String(innerErr);
             if (errStr.includes("access violation")) {
                 console.log("[Spawn] " + mobEntry.name + " failed (access violation) — retrying without delegate...");
                 try {
-                    pgClass.method("SpawnMobAsync", 6).overload(
-                        "AnimalCompany.MobID", "UnityEngine.Vector3", "UnityEngine.Quaternion",
-                        "Fusion.NetworkRunner.OnBeforeSpawned", "Fusion.NetworkObjectSpawnDelegate", "System.String"
-                    ).invoke(mobId, pos, rot || identityQuaternion, null, spawnDelegate, Il2Cpp.string("mod"));
+                    pgClass.method("SpawnMobAsync", 6).invoke(mobIdInt, pos, rot || identityQuaternion, null, null, src);
                 } catch(innerErr2) {
                     console.log("[Spawn] " + mobEntry.name + " failed (retry): " + innerErr2);
                     return false;
