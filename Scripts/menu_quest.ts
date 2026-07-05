@@ -10074,7 +10074,15 @@ new ButtonInfo({
             const vals = [1, 5, 10, 15, 25, 30, 40, 50];
             bulkSpawnIndex = (bulkSpawnIndex + 1) % vals.length;
             bulkSpawnAmount = vals[bulkSpawnIndex];
-            try { for (const b of buttons) { for (const btn of b) { if (btn.buttonText.startsWith("Bulk Spawn:")) { btn.buttonText = "Bulk Spawn: " + bulkSpawnAmount; } } } catch(_) {}
+            try {
+                for (const b of buttons) {
+                    for (const btn of b) {
+                        if (btn.buttonText.startsWith("Bulk Spawn:")) {
+                            btn.buttonText = "Bulk Spawn: " + bulkSpawnAmount;
+                        }
+                    }
+                }
+            } catch(_) {}
             sendNotification("Bulk spawn: " + bulkSpawnAmount + "x", false);
         },
         isTogglable: false,
