@@ -2447,53 +2447,12 @@ function acGetOnSpawnDelegate(): any {
     try {
         const delegateClass = Il2Cpp.domain.assembly("Fusion.Runtime").image.class("Fusion.NetworkRunner").tryNested("NetworkObjectSpawnDelegate");
         const acImg = acAnimalCompanyImage();
-        const mobControllerClass = acImg.class("AnimalCompany.MobController");
+        const validator = acImg.class("AnimalCompany.MobSpawnValidator");
         acOnSpawnDelegate = Il2Cpp.delegate(delegateClass, (runner: any, no: any) => {
             try {
-                if (!no || no.isNull()) return;
-                const go = no.method("get_GameObject").invoke();
-                if (!go || go.isNull()) return;
-                try {
-                    const mobCtrl = no.method("GetComponent").overload("System.Type").invoke(mobControllerClass);
-                    if (mobCtrl && !mobCtrl.isNull()) {
-                        try { mobCtrl.method("InitializeNavMeshAgent").invoke(); console.log("[Spawn] Called InitializeNavMeshAgent"); } catch(_){}
-                        try { mobCtrl.method("Setup").invoke(); console.log("[Spawn] Called MobController.Setup()"); } catch(_){}
-                        try {
-                            const transform = go.method("get_transform").invoke();
-                            const spawnPos = transform.method("get_position").invoke();
-                            mobCtrl.method("ApplySectorsFromSpawnPosition").invoke(spawnPos);
-                            console.log("[Spawn] Called ApplySectorsFromSpawnPosition");
-                        } catch(e) { console.log("[Spawn] ApplySectorsFromSpawnPosition failed: " + e); }
-                        try {
-                            mobCtrl.method("SetRoamingTarget", 1).overload("System.Boolean").invoke(true);
-                            console.log("[Spawn] Called SetRoamingTarget(true)");
-                        } catch(e) { console.log("[Spawn] SetRoamingTarget failed: " + e); }
-                        try {
-                            mobCtrl.method("SetNavAgentStopped").overload("System.Boolean").invoke(false);
-                            console.log("[Spawn] Called SetNavAgentStopped(false)");
-                        } catch(_){}
-                    }
-                } catch(_){}
-                const components = go.method("GetComponentsInChildren").overload("System.Type").invoke(
-                    Il2Cpp.domain.assembly("UnityEngine.CoreModule").image.class("UnityEngine.Component")
-                );
-                const count = components.method("get_Length").invoke();
-                for (let i = 0; i < count; i++) {
-                    try {
-                        const comp = components.method("get_Item").invoke(i);
-                        if (!comp || comp.isNull()) continue;
-                        const compType = comp.method("GetType").invoke();
-                        const typeName = compType.method("get_Name").invoke().toString();
-                        if (typeName === "NavMeshAgent" || typeName === "UnityEngine.AI.NavMeshAgent") {
-                            comp.method("set_enabled").overload("System.Boolean").invoke(true);
-                            console.log("[Spawn] Enabled NavMeshAgent on mob");
-                        }
-                        if (typeName.includes("MobController") || typeName.includes("MobBehaviour") || typeName.includes("ForestMobController") || typeName.includes("HeartMobController") || typeName.includes("HordeMobController")) {
-                            comp.method("set_enabled").overload("System.Boolean").invoke(true);
-                            console.log("[Spawn] Enabled " + typeName + " on mob");
-                        }
-                    } catch(_){}
-                }
+                if (!no || no.isNull?.()) return;
+                const id = no.method("get_Id").invoke();
+                validator.method("AddAllowMob", 1).invoke(id);
             } catch(_){}
         });
     } catch(e) {
@@ -2521,46 +2480,60 @@ function spawnMobAtPos(mobEntry: { name: string; id: number }, pos: any, rot: an
                 } catch(_){}
             }
         } catch(_){}
-        const mobIdInt = mobEntry.id;
-        if (mobIdInt === null || mobIdInt === undefined) {
-            console.log("[Spawn] Could not resolve MobID for: " + mobEntry.name);
-            return false;
-        }
-        const delegate = acGetBeforeMobSpawnDelegate();
-        const onSpawnDelegate = acGetOnSpawnDelegate();
-        const nullRef = acGetSpawnNullRef();
-        if (!nullRef || nullRef.isNull?.()) {
-            console.log("[Spawn] " + mobEntry.name + " failed: nullRef is null");
-            return false;
-        }
         const acImg = acAnimalCompanyImage();
         const pgClass = acImg.class("AnimalCompany.PrefabGenerator");
+        const mobIdClass = acImg.class("AnimalCompany.MobID");
         const inst = pgClass.field("_instance").value;
         if (!inst || inst.isNull()) {
             console.log("[Spawn] " + mobEntry.name + " failed: PrefabGenerator._instance is null");
             return false;
         }
-        const spawnDelegate = onSpawnDelegate || nullRef;
-        const src = getItemSpawnSource();
-        try {
-            pgClass.method("SpawnMobAsync", 6).invoke(mobIdInt, pos, rot || identityQuaternion, delegate, null, src);
-        } catch(innerErr) {
-            const errStr = String(innerErr);
-            if (errStr.includes("access violation")) {
-                console.log("[Spawn] " + mobEntry.name + " failed (access violation) — retrying without delegate...");
-                try {
-                    pgClass.method("SpawnMobAsync", 6).invoke(mobIdInt, pos, rot || identityQuaternion, null, null, src);
-                } catch(innerErr2) {
-                    console.log("[Spawn] " + mobEntry.name + " failed (retry): " + innerErr2);
-                    return false;
-                }
-            } else {
-                console.log("[Spawn] " + mobEntry.name + " failed: " + innerErr);
-                return false;
-            }
+        const delegate = acGetBeforeMobSpawnDelegate();
+        const nullRef = acGetSpawnNullRef();
+        const overloadTypes = ["AnimalCompany.MobID", "UnityEngine.Vector3", "UnityEngine.Quaternion", "OnBeforeSpawned", "Fusion.NetworkObjectSpawnDelegate", "System.String"];
+
+        let mobIdVal: any = null;
+        const nameVariants = [mobEntry.name, mobEntry.name.replace(/Controller$/, ""), mobEntry.name + "Controller"];
+        for (const variant of nameVariants) {
+            try { mobIdVal = mobIdClass.field(variant).value; break; } catch(_) {}
         }
-        console.log("[Spawn] " + mobEntry.name + " OK");
-        return true;
+        if (mobIdVal === null || mobIdVal === undefined) {
+            mobIdVal = mobEntry.id;
+        }
+        if (mobIdVal === null || mobIdVal === undefined) {
+            console.log("[Spawn] Could not resolve MobID for: " + mobEntry.name);
+            return false;
+        }
+
+        try {
+            pgClass.method("SpawnMobAsyncInternal", 6)
+                .overload(...overloadTypes)
+                .invoke(mobIdVal, pos, rot || identityQuaternion, delegate, nullRef, Il2Cpp.string("mod"));
+            console.log("[Spawn] " + mobEntry.name + " OK (SpawnMobAsyncInternal)");
+            return true;
+        } catch(e1) {
+            console.log("[Spawn] SpawnMobAsyncInternal failed: " + e1);
+        }
+
+        try {
+            pgClass.method("SpawnMobAsync", 6)
+                .overload(...overloadTypes)
+                .invoke(mobIdVal, pos, rot || identityQuaternion, delegate, nullRef, Il2Cpp.string("menu"));
+            console.log("[Spawn] " + mobEntry.name + " OK (SpawnMobAsync)");
+            return true;
+        } catch(e2) {
+            console.log("[Spawn] SpawnMobAsync overload failed: " + e2);
+        }
+
+        try {
+            pgClass.method("SpawnMobAsync", 6)
+                .invoke(mobIdVal, pos, rot || identityQuaternion, delegate, nullRef, Il2Cpp.string("mod"));
+            console.log("[Spawn] " + mobEntry.name + " OK (no overload)");
+            return true;
+        } catch(e3) {
+            console.log("[Spawn] " + mobEntry.name + " all paths failed: " + e3);
+            return false;
+        }
     } catch(e) {
         console.log("[Spawn] " + mobEntry.name + " failed: " + e);
         return false;
@@ -4909,7 +4882,6 @@ if (currentCategory === 32) {
     function tryKickPlayer(player: any): boolean {
         if (!player || player.isNull?.() || playerIsLocal(player)) return false;
 
-        // Get the Fusion PlayerRef
         const playerRef = (() => {
             try { return player.method("get_PlayerRef").invoke(); } catch(_) {}
             try { return player.field("_playerRef").value; } catch(_) {}
@@ -4922,140 +4894,97 @@ if (currentCategory === 32) {
                     try { return netObj.method("get_StateAuthority").invoke(); } catch(_) {}
                 }
             } catch(_) {}
-            try {
-                const playerHandle = normalizeSceneObjectHandle(player);
-                if (playerHandle) {
-                    const playerDict = NetPlayer.field("playerIDToNetPlayer").value;
-                    if (playerDict && !playerDict.isNull?.()) {
-                        const dictEn = playerDict.method("GetEnumerator").invoke();
-                        while (dictEn.method("MoveNext").invoke()) {
-                            const entry = dictEn.method("get_Current").invoke();
-                            try {
-                                const val = entry.field("Value").value;
-                                if (normalizeSceneObjectHandle(val) === playerHandle) {
-                                    return entry.field("Key").value;
-                                }
-                            } catch(_) {}
-                        }
-                    }
-                }
-            } catch(_) {}
             return null;
         })();
 
-        // APPROACH 1: runner.Disconnect(PlayerRef) — only works if we're the host (StateAuthority)
+        const kickTokens = getPlayerKickTokens(player);
+        const acImg = acAnimalCompanyImage();
+
+        // APPROACH 1: NetSessionRPCs.KickPlayer(userId) — static method
+        try {
+            const rpcsClass = acImg.class("AnimalCompany.NetSessionRPCs");
+            const kickMethod = rpcsClass.method("KickPlayer", 1) || rpcsClass.method("KickPlayer");
+            if (kickMethod) {
+                for (const token of kickTokens) {
+                    try {
+                        kickMethod.invoke(token);
+                        console.log("[Kick] NetSessionRPCs.KickPlayer(userId) succeeded: " + token);
+                        return true;
+                    } catch(_) {}
+                    try {
+                        kickMethod.invoke(Il2Cpp.string(token));
+                        console.log("[Kick] NetSessionRPCs.KickPlayer(string) succeeded: " + token);
+                        return true;
+                    } catch(_) {}
+                }
+            }
+        } catch(_) {}
+
+        // APPROACH 2: RPC_KickPlayer on NetSessionRPCs instance with Guid
+        try {
+            const rpcsClass = acImg.class("AnimalCompany.NetSessionRPCs");
+            const rpcsInst = rpcsClass.field("_instance").value;
+            const rpcKickMethod = rpcsInst && !rpcsInst.isNull?.() ? rpcsInst.method("RPC_KickPlayer") : null;
+            const guidParse = Il2Cpp.corlib.class("System.Guid").method("Parse", 1);
+            if (rpcKickMethod && guidParse) {
+                for (const token of kickTokens) {
+                    try {
+                        const guid = guidParse.invoke(token);
+                        rpcKickMethod.invoke(guid);
+                        console.log("[Kick] RPC_KickPlayer(Guid) succeeded: " + token);
+                        return true;
+                    } catch(_) {}
+                }
+            }
+        } catch(_) {}
+
+        // APPROACH 3: runner.Disconnect(PlayerRef) — only works if we're host
         for (const runner of getRunnerCandidates()) {
             try {
                 if (!runner || runner.isNull?.()) continue;
-
-                // Check if we're the host by comparing LocalPlayer with first active player
-                let isHost = false;
-                try {
-                    const localPlayer = runner.method("get_LocalPlayer").invoke();
-                    const activePlayers = runner.method("get_ActivePlayers").invoke();
-                    const enumerator = activePlayers.method("GetEnumerator").invoke();
-                    let idx = 0;
-                    while (enumerator.method("MoveNext").invoke()) {
-                        const p = enumerator.method("get_Current").invoke();
-                        if (idx === 0) {
-                            const localId = localPlayer.method("get_PlayerId").invoke();
-                            const hostId = p.method("get_PlayerId").invoke();
-                            isHost = (localId.toInt() === hostId.toInt());
-                            break;
-                        }
-                        idx++;
-                    }
-                } catch(_) {}
-
                 if (playerRef != null) {
-                    if (isHost) {
-                        console.log("[Kick] We are the host — trying runner.Disconnect");
-                    }
                     try {
                         runner.method("Disconnect", 1).invoke(playerRef);
                         console.log("[Kick] runner.Disconnect(PlayerRef) succeeded");
                         return true;
-                    } catch(e1) {
-                        console.log("[Kick] Disconnect(1) failed: " + e1);
-                    }
+                    } catch(_) {}
                     try {
                         const reasonStr = Il2Cpp.string("Kicked by host");
                         runner.method("Disconnect", 2).invoke(playerRef, reasonStr);
                         console.log("[Kick] runner.Disconnect(PlayerRef, String) succeeded");
                         return true;
-                    } catch(e2) {
-                        console.log("[Kick] Disconnect(2) failed: " + e2);
-                    }
+                    } catch(_) {}
                 }
             } catch(_) {}
         }
 
-        // APPROACH 2: API-based private room kick (KickUserFromPrivateRoom)
+        // APPROACH 4: Brute force kick methods on all classes
+        const kickMethodNames = ["KickPlayer", "RPC_KickPlayer", "KickPlayerByUserId", "KickPlayerByAccountId", "DisconnectPlayer", "DisconnectUser", "KickUserFromPrivateRoom", "RemovePrivateRoomMember", "KickUser", "BanUserFromPrivateRoom", "RoomBanUserAsync", "KickSelectedPlayer", "ModerateKickUser"];
+        const targetClasses = [acImg.class("AnimalCompany.NetSessionRPCs")];
         try {
-            const targetUserID = (() => {
-                try { return player.field("_userID").value?.toString(); } catch(_) {}
-                try { return player.field("<userID>k__BackingField").value?.toString(); } catch(_) {}
-                try { return player.field("_actorID").value?.toString(); } catch(_) {}
-                return null;
-            })();
-            const roomCode = (() => {
-                try {
-                    const sessionManager = getRunnerCandidates()[0]?.method("get_SessionInfo").invoke();
-                    if (sessionManager && !sessionManager.isNull?.()) {
-                        return sessionManager.method("get_Name").invoke().toString();
-                    }
-                } catch(_) {}
-                try {
-                    const nmInst = NManager.method("get_instance").invoke();
-                    if (nmInst && !nmInst.isNull?.()) {
-                        const sess = nmInst.field("_currSessionManager").value;
-                        if (sess && !sess.isNull?.()) {
-                            const info = sess.method("get_Session").invoke();
-                            if (info && !info.isNull?.()) {
-                                return info.method("get_Name").invoke().toString();
-                            }
-                        }
-                    }
-                } catch(_) {}
-                return null;
-            })();
-            if (targetUserID && roomCode) {
-                console.log("[Kick] API kick: room=" + roomCode + " target=" + targetUserID);
-                const acImg = acAnimalCompanyImage();
-                const acClasses = acImg.classes;
-                for (let i = 0; i < acClasses.length; i++) {
+            const fusionClasses = Il2Cpp.domain.assembly("Fusion.Runtime").image.class("Fusion.NetworkRunner");
+            targetClasses.push(fusionClasses);
+        } catch(_) {}
+        for (const cls of targetClasses) {
+            if (!cls) continue;
+            for (const m of cls.methods) {
+                if (!kickMethodNames.includes(m.name)) continue;
+                for (const token of kickTokens) {
                     try {
-                        const cls = acClasses[i];
-                        for (const m of cls.methods) {
-                            if (m.name === "KickUserFromPrivateRoom" || m.name === "BanUserFromPrivateRoom") {
-                                console.log("[Kick] Found " + m.name + " on " + cls.name);
-                                try {
-                                    const found = Object.method("FindObjectOfType", 0).inflate(cls).invoke();
-                                    if (found && !found.isNull?.()) {
-                                        const roomCodeStr = Il2Cpp.string(roomCode);
-                                        const userIdStr = Il2Cpp.string(targetUserID);
-                                        try {
-                                            m.bind(found).invoke(roomCodeStr, userIdStr, false);
-                                            console.log("[Kick] " + m.name + " called on instance");
-                                            return true;
-                                        } catch(_) {}
-                                    }
-                                } catch(_) {}
-                                if (m.isStatic) {
-                                    try {
-                                        const roomCodeStr = Il2Cpp.string(roomCode);
-                                        const userIdStr = Il2Cpp.string(targetUserID);
-                                        m.invoke(roomCodeStr, userIdStr, false);
-                                        console.log("[Kick] " + m.name + " called static");
-                                        return true;
-                                    } catch(_) {}
-                                }
+                        if (m.parameterCount === 1) {
+                            if (m.isStatic) {
+                                m.invoke(token);
+                            } else {
+                                const inst = cls.field("_instance")?.value;
+                                if (inst && !inst.isNull?.()) m.bind(inst).invoke(token);
                             }
+                            console.log("[Kick] Brute force " + cls.name + "." + m.name + " succeeded");
+                            return true;
                         }
                     } catch(_) {}
                 }
             }
-        } catch(e) { console.log("[Kick] API kick error: " + e); }
+        }
 
         return false;
     }
@@ -7182,7 +7111,7 @@ function getScriptDir(): string {
                             const ufoMobs = [50, 51, 52];
                             for (let i = 0; i < ufoMobs.length; i++) {
                                 setTimeout(() => {
-                                    try { PrefabGen.method("SpawnMobAsync", 6).invoke(ufoMobs[i], [pos.field("x").value + i*5, pos.field("y").value + 5, pos.field("z").value], identityQuaternion, null, null, getItemSpawnSource()); } catch(_) {}
+                                    try { PrefabGen.method("SpawnMobAsync", 6).overload("AnimalCompany.MobID", "UnityEngine.Vector3", "UnityEngine.Quaternion", "OnBeforeSpawned", "Fusion.NetworkObjectSpawnDelegate", "System.String").invoke(ufoMobs[i], [pos.field("x").value + i*5, pos.field("y").value + 5, pos.field("z").value], identityQuaternion, null, null, Il2Cpp.string("mod")); } catch(_) {}
                                 }, i * 500);
                             }
                             sendNotification("Spawned all UFOs!", false);
@@ -7258,7 +7187,7 @@ function getScriptDir(): string {
                                 setTimeout(() => {
                                     try {
                                         const runner = SFXManager.method("get_instance").invoke()?.field("_runner").value;
-                                        if (runner && !runner.isNull()) PrefabGen.method("SpawnMobAsync", 6).invoke(22, [pos.field("x").value + (Math.random()-0.5)*10, pos.field("y").value + 1, pos.field("z").value + (Math.random()-0.5)*10], identityQuaternion, null, null, getItemSpawnSource());
+                                        if (runner && !runner.isNull()) PrefabGen.method("SpawnMobAsync", 6).overload("AnimalCompany.MobID", "UnityEngine.Vector3", "UnityEngine.Quaternion", "OnBeforeSpawned", "Fusion.NetworkObjectSpawnDelegate", "System.String").invoke(22, [pos.field("x").value + (Math.random()-0.5)*10, pos.field("y").value + 1, pos.field("z").value + (Math.random()-0.5)*10], identityQuaternion, null, null, Il2Cpp.string("mod"));
                                     } catch(_) {}
                                 }, i * 400);
                             }
@@ -7500,7 +7429,7 @@ function getScriptDir(): string {
                             const pos = hand.method("get_position").invoke();
                             const runner = SFXManager.method("get_instance").invoke()?.field("_runner").value;
                             if (runner && !runner.isNull()) {
-                                PrefabGen.method("SpawnMobAsync", 6).invoke(mobIDs[mobIndex].id, [pos.field("x").value, pos.field("y").value, pos.field("z").value], identityQuaternion, null, null, getItemSpawnSource());
+                                PrefabGen.method("SpawnMobAsync", 6).overload("AnimalCompany.MobID", "UnityEngine.Vector3", "UnityEngine.Quaternion", "OnBeforeSpawned", "Fusion.NetworkObjectSpawnDelegate", "System.String").invoke(mobIDs[mobIndex].id, [pos.field("x").value, pos.field("y").value, pos.field("z").value], identityQuaternion, null, null, Il2Cpp.string("mod"));
                             }
                         } catch(_) {}
                     },
@@ -21594,7 +21523,9 @@ new ButtonInfo({
                         let respawned = null;
                         try {
                             if (!mobSpawnAsyncBroken) {
-                                respawned = PrefabGen.method("SpawnMobAsync", 6).invoke(
+                                respawned = PrefabGen.method("SpawnMobAsync", 6).overload(
+                                    "AnimalCompany.MobID", "UnityEngine.Vector3", "UnityEngine.Quaternion", "OnBeforeSpawned", "Fusion.NetworkObjectSpawnDelegate", "System.String"
+                                ).invoke(
                                     entry.mobEntry.id, entry.pos, entry.rot, NULL, NULL, Il2Cpp.string("menu")
                                 );
                             }
@@ -22789,7 +22720,7 @@ try {
                 const localPlayer = NetPlayer.method("get_localPlayer").invoke();
                 if (runner && !runner.isNull() && localPlayer && !localPlayer.isNull()) {
                     const pos = getTransform(localPlayer).method("get_position").invoke();
-                    PrefabGen.method("SpawnMobAsync", 6).invoke(31, [pos.field("x").value + (Math.random()-0.5)*6, pos.field("y").value, pos.field("z").value + (Math.random()-0.5)*6], identityQuaternion, null, null, getItemSpawnSource());
+                    PrefabGen.method("SpawnMobAsync", 6).overload("AnimalCompany.MobID", "UnityEngine.Vector3", "UnityEngine.Quaternion", "OnBeforeSpawned", "Fusion.NetworkObjectSpawnDelegate", "System.String").invoke(31, [pos.field("x").value + (Math.random()-0.5)*6, pos.field("y").value, pos.field("z").value + (Math.random()-0.5)*6], identityQuaternion, null, null, Il2Cpp.string("mod"));
                 }
             } catch(_) {}
         }
@@ -22801,7 +22732,7 @@ try {
                 const localPlayer = NetPlayer.method("get_localPlayer").invoke();
                 if (runner && !runner.isNull() && localPlayer && !localPlayer.isNull()) {
                     const pos = getTransform(localPlayer).method("get_position").invoke();
-                    PrefabGen.method("SpawnMobAsync", 6).invoke(20, [pos.field("x").value + (Math.random()-0.5)*6, pos.field("y").value + 2, pos.field("z").value + (Math.random()-0.5)*6], identityQuaternion, null, null, getItemSpawnSource());
+                    PrefabGen.method("SpawnMobAsync", 6).overload("AnimalCompany.MobID", "UnityEngine.Vector3", "UnityEngine.Quaternion", "OnBeforeSpawned", "Fusion.NetworkObjectSpawnDelegate", "System.String").invoke(20, [pos.field("x").value + (Math.random()-0.5)*6, pos.field("y").value + 2, pos.field("z").value + (Math.random()-0.5)*6], identityQuaternion, null, null, Il2Cpp.string("mod"));
                 }
             } catch(_) {}
         }
