@@ -20263,8 +20263,9 @@ p.method("RPC_PlayerHit", 5).invoke(10, pos, [0,0,0], dmgNull, false);
                 leftTrigger = getMouseButtonState(1);
                 rightPrimary = isKeyDown(0x20);
                 leftGrab = isKeyDown(0xA0);
+                leftSecondary = false;
 
-                if (isKeyDown(0xA1)) rightSecondary = true;
+                rightSecondary = true;
 
                 const leftArrowDown = isKeyDown(0x25);
                 const rightArrowDown = isKeyDown(0x27);
