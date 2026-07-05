@@ -2458,6 +2458,22 @@ function acGetOnSpawnDelegate(): any {
                     if (mobCtrl && !mobCtrl.isNull()) {
                         try { mobCtrl.method("InitializeNavMeshAgent").invoke(); console.log("[Spawn] Called InitializeNavMeshAgent"); } catch(_){}
                         try { mobCtrl.method("Setup").invoke(); console.log("[Spawn] Called MobController.Setup()"); } catch(_){}
+                        try {
+                            const transform = go.method("get_transform").invoke();
+                            const spawnPos = transform.method("get_position").invoke();
+                            mobCtrl.method("ApplySectorsFromSpawnPosition").invoke(spawnPos);
+                            console.log("[Spawn] Called ApplySectorsFromSpawnPosition");
+                        } catch(e) { console.log("[Spawn] ApplySectorsFromSpawnPosition failed: " + e); }
+                        try {
+                            const boolClass = Il2Cpp.domain.assembly("mscorlib").image.class("System.Boolean");
+                            const trueVal = Il2Cpp.pointer(boolClass, 1);
+                            mobCtrl.method("SetRoamingTarget", 1).invoke(trueVal);
+                            console.log("[Spawn] Called SetRoamingTarget(true)");
+                        } catch(e) { console.log("[Spawn] SetRoamingTarget failed: " + e); }
+                        try {
+                            mobCtrl.method("SetNavAgentStopped").invoke(false);
+                            console.log("[Spawn] Called SetNavAgentStopped(false)");
+                        } catch(_){}
                     }
                 } catch(_){}
                 const components = go.method("GetComponentsInChildren").overload("System.Type").invoke(
@@ -4904,114 +4920,155 @@ if (currentCategory === 32) {
     }
     function tryKickPlayer(player: any): boolean {
         if (!player || player.isNull?.() || playerIsLocal(player)) return false;
-        try {
-            // Get the Fusion PlayerRef for this player via multiple fallback paths
-            const playerRef = (() => {
-                try { return player.method("get_PlayerRef").invoke(); } catch(_) {}
-                try { return player.field("_playerRef").value; } catch(_) {}
-                try { return player.field("<PlayerRef>k__BackingField").value; } catch(_) {}
-                // Best approach: NetworkBehaviour.Object.InputAuthority / StateAuthority
+
+        // Get the Fusion PlayerRef
+        const playerRef = (() => {
+            try { return player.method("get_PlayerRef").invoke(); } catch(_) {}
+            try { return player.field("_playerRef").value; } catch(_) {}
+            try { return player.field("<PlayerRef>k__BackingField").value; } catch(_) {}
+            try {
+                const netObj = player.method("get_Object").invoke();
+                if (netObj && !netObj.isNull?.()) {
+                    try { return netObj.method("get_InputAuthority").invoke(); } catch(_) {}
+                    try { return netObj.field("InputAuthority").value; } catch(_) {}
+                    try { return netObj.method("get_StateAuthority").invoke(); } catch(_) {}
+                }
+            } catch(_) {}
+            try {
+                const playerHandle = normalizeSceneObjectHandle(player);
+                if (playerHandle) {
+                    const playerDict = NetPlayer.field("playerIDToNetPlayer").value;
+                    if (playerDict && !playerDict.isNull?.()) {
+                        const dictEn = playerDict.method("GetEnumerator").invoke();
+                        while (dictEn.method("MoveNext").invoke()) {
+                            const entry = dictEn.method("get_Current").invoke();
+                            try {
+                                const val = entry.field("Value").value;
+                                if (normalizeSceneObjectHandle(val) === playerHandle) {
+                                    return entry.field("Key").value;
+                                }
+                            } catch(_) {}
+                        }
+                    }
+                }
+            } catch(_) {}
+            return null;
+        })();
+
+        // APPROACH 1: runner.Disconnect(PlayerRef) — only works if we're the host (StateAuthority)
+        for (const runner of getRunnerCandidates()) {
+            try {
+                if (!runner || runner.isNull?.()) continue;
+
+                // Check if we're the host by comparing LocalPlayer with first active player
+                let isHost = false;
                 try {
-                    const netObj = player.method("get_Object").invoke();
-                    if (netObj && !netObj.isNull?.()) {
-                        try { return netObj.method("get_InputAuthority").invoke(); } catch(_) {}
-                        try { return netObj.field("InputAuthority").value; } catch(_) {}
-                        try { return netObj.method("get_StateAuthority").invoke(); } catch(_) {}
+                    const localPlayer = runner.method("get_LocalPlayer").invoke();
+                    const activePlayers = runner.method("get_ActivePlayers").invoke();
+                    const enumerator = activePlayers.method("GetEnumerator").invoke();
+                    let idx = 0;
+                    while (enumerator.method("MoveNext").invoke()) {
+                        const p = enumerator.method("get_Current").invoke();
+                        if (idx === 0) {
+                            const localId = localPlayer.method("get_PlayerId").invoke();
+                            const hostId = p.method("get_PlayerId").invoke();
+                            isHost = (localId.toInt() === hostId.toInt());
+                            break;
+                        }
+                        idx++;
                     }
                 } catch(_) {}
-                // Fallback: look up the int key in playerIDToNetPlayer whose value is this player
+
+                if (playerRef != null) {
+                    if (isHost) {
+                        console.log("[Kick] We are the host — trying runner.Disconnect");
+                    }
+                    try {
+                        runner.method("Disconnect", 1).invoke(playerRef);
+                        console.log("[Kick] runner.Disconnect(PlayerRef) succeeded");
+                        return true;
+                    } catch(e1) {
+                        console.log("[Kick] Disconnect(1) failed: " + e1);
+                    }
+                    try {
+                        const reasonStr = Il2Cpp.string("Kicked by host");
+                        runner.method("Disconnect", 2).invoke(playerRef, reasonStr);
+                        console.log("[Kick] runner.Disconnect(PlayerRef, String) succeeded");
+                        return true;
+                    } catch(e2) {
+                        console.log("[Kick] Disconnect(2) failed: " + e2);
+                    }
+                }
+            } catch(_) {}
+        }
+
+        // APPROACH 2: API-based private room kick (KickUserFromPrivateRoom)
+        try {
+            const targetUserID = (() => {
+                try { return player.field("_userID").value?.toString(); } catch(_) {}
+                try { return player.field("<userID>k__BackingField").value?.toString(); } catch(_) {}
+                try { return player.field("_actorID").value?.toString(); } catch(_) {}
+                return null;
+            })();
+            const roomCode = (() => {
                 try {
-                    const playerHandle = normalizeSceneObjectHandle(player);
-                    if (playerHandle) {
-                        const playerDict = NetPlayer.field("playerIDToNetPlayer").value;
-                        if (playerDict && !playerDict.isNull?.()) {
-                            const dictEn = playerDict.method("GetEnumerator").invoke();
-                            while (dictEn.method("MoveNext").invoke()) {
-                                const entry = dictEn.method("get_Current").invoke();
-                                try {
-                                    const val = entry.field("Value").value;
-                                    if (normalizeSceneObjectHandle(val) === playerHandle) {
-                                        return entry.field("Key").value;
-                                    }
-                                } catch(_) {}
+                    const sessionManager = getRunnerCandidates()[0]?.method("get_SessionInfo").invoke();
+                    if (sessionManager && !sessionManager.isNull?.()) {
+                        return sessionManager.method("get_Name").invoke().toString();
+                    }
+                } catch(_) {}
+                try {
+                    const nmInst = NManager.method("get_instance").invoke();
+                    if (nmInst && !nmInst.isNull?.()) {
+                        const sess = nmInst.field("_currSessionManager").value;
+                        if (sess && !sess.isNull?.()) {
+                            const info = sess.method("get_Session").invoke();
+                            if (info && !info.isNull?.()) {
+                                return info.method("get_Name").invoke().toString();
                             }
                         }
                     }
                 } catch(_) {}
                 return null;
             })();
-            for (const runner of getRunnerCandidates()) {
-                try {
-                    if (!runner || runner.isNull?.()) continue;
-                    if (playerRef != null) {
-                        // Try direct Disconnect(PlayerRef) � most reliable in Photon Fusion if you're host
-                        try { runner.method("Disconnect", 1).invoke(playerRef); return true; } catch(_) {}
-                        try { runner.method("Disconnect", 2).invoke(playerRef, true); return true; } catch(_) {}
-                        if (tryCallNames(runner, ["Disconnect", "DisconnectPlayer", "RemovePlayer", "KickPlayer", "CloseConnection", "KickPeer"], 1, playerRef)) return true;
-                        if (tryCallNames(runner, ["Disconnect", "DisconnectPlayer", "RemovePlayer", "KickPlayer", "CloseConnection", "KickPeer"], 2, playerRef, true)) return true;
-                    }
-                    if (tryCallNames(runner, ["Disconnect", "DisconnectPlayer", "RemovePlayer", "KickPlayer", "CloseConnection", "KickPeer"], 1, player)) return true;
-                    if (tryCallNames(runner, ["Disconnect", "DisconnectPlayer", "RemovePlayer", "KickPlayer", "CloseConnection", "KickPeer"], 2, player, true)) return true;
-                } catch(_) {}
-            }
-        } catch(_) {}
-        const tokens = getPlayerKickTokens(player).sort((a, b) => rankKickToken(b) - rankKickToken(a));
-        const methodNames = [
-            "KickPlayer",
-            "RPC_KickPlayer",
-            "KickPlayerByUserId",
-            "KickPlayerByAccountId",
-            "DisconnectPlayer",
-            "DisconnectUser",
-            "KickUserFromPrivateRoom",
-            "RemovePrivateRoomMember",
-            "KickUser",
-            "BanUserFromPrivateRoom",
-            "RoomBanUserAsync",
-            "KickSelectedPlayer",
-            "ModerateKickUser",
-            "OnKickUserPressed",
-            "KickFromRoom",
-            "RemoveFromRoom",
-            "KickNetPlayer",
-            "BanPlayer",
-            "BlacklistPlayer",
-            "ExpelPlayer",
-            "ModerateBanUser",
-            "OnBanUserPressed"
-        ];
-        const candidateClasses = [
-            NetSessionPrivateRoomManagerClass,
-            PlayerWatchDevMenuMediatorClass,
-            ModerationMenuMediatorClass,
-            NetworkSessionManagerClass,
-            NManager,
-            PrivateRoomStateClass,
-            UserCacheManagerClass,
-            AnimalCompanyApiClass
-        ];
-        // FindObjectOfType fallback so we find live singletons even if the static field name is unknown
-        const getInstances = (klass: any): any[] => {
-            const instances = getSingletonInstanceCandidates(klass);
-            if (instances.length === 0 && klass) {
-                try {
-                    const found = Object.method("FindObjectOfType", 0).inflate(klass).invoke();
-                    if (found && !found.isNull?.()) instances.push(found);
-                } catch(_) {}
-            }
-            return instances;
-        };
-        for (const token of tokens) {
-            for (const klass of candidateClasses) {
-                if (!klass) continue;
-                for (const methodName of methodNames) {
-                    for (const instance of getInstances(klass)) {
-                        if (tryInvokeModerationMethod(instance, false, methodName, token, player)) return true;
-                    }
-                    if (tryInvokeModerationMethod(klass, true, methodName, token, player)) return true;
+            if (targetUserID && roomCode) {
+                console.log("[Kick] API kick: room=" + roomCode + " target=" + targetUserID);
+                const acImg = acAnimalCompanyImage();
+                const acClasses = acImg.classes;
+                for (let i = 0; i < acClasses.length; i++) {
+                    try {
+                        const cls = acClasses[i];
+                        for (const m of cls.methods) {
+                            if (m.name === "KickUserFromPrivateRoom" || m.name === "BanUserFromPrivateRoom") {
+                                console.log("[Kick] Found " + m.name + " on " + cls.name);
+                                try {
+                                    const found = Object.method("FindObjectOfType", 0).inflate(cls).invoke();
+                                    if (found && !found.isNull?.()) {
+                                        const roomCodeStr = Il2Cpp.string(roomCode);
+                                        const userIdStr = Il2Cpp.string(targetUserID);
+                                        try {
+                                            m.bind(found).invoke(roomCodeStr, userIdStr, false);
+                                            console.log("[Kick] " + m.name + " called on instance");
+                                            return true;
+                                        } catch(_) {}
+                                    }
+                                } catch(_) {}
+                                if (m.isStatic) {
+                                    try {
+                                        const roomCodeStr = Il2Cpp.string(roomCode);
+                                        const userIdStr = Il2Cpp.string(targetUserID);
+                                        m.invoke(roomCodeStr, userIdStr, false);
+                                        console.log("[Kick] " + m.name + " called static");
+                                        return true;
+                                    } catch(_) {}
+                                }
+                            }
+                        }
+                    } catch(_) {}
                 }
             }
-        }
+        } catch(e) { console.log("[Kick] API kick error: " + e); }
+
         return false;
     }
     function isPlayerNearMe(player: any, maxDistance: number = 10.0): boolean {
@@ -21283,7 +21340,7 @@ new ButtonInfo({
                 rightGrab = isKeyDown(0x45) || getMouseButtonState(0);
                 rightTrigger = getMouseButtonState(0);
                 leftTrigger = getMouseButtonState(1);
-                rightPrimary = isKeyDown(0x20);
+                rightPrimary = false;
                 leftGrab = isKeyDown(0xA0);
                 leftSecondary = false;
 
