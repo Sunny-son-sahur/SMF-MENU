@@ -2654,8 +2654,6 @@ function spawnMobAtPos(mobEntry: { name: string; id: number }, pos: any, rot: an
         }
         const spawnDelegate = onSpawnDelegate || nullRef;
         const src = getItemSpawnSource();
-        let mobIdInt = mobId;
-        try { if (mobId && mobId.toInt) mobIdInt = mobId.toInt(); } catch(_) {}
         try {
             pgClass.method("SpawnMobAsync", 6).invoke(mobIdInt, pos, rot || identityQuaternion, delegate, null, src);
         } catch(innerErr) {
