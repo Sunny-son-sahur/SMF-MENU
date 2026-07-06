@@ -3698,7 +3698,7 @@ if (currentCategory === 32) {
                     if (!child || child.isNull?.()) continue;
                     const go = child.method("get_gameObject").invoke();
                     if (!go || go.isNull?.()) continue;
-                    const rawName = go.method("get_name").invoke().toString();
+                    const rawName = (go.method("get_name").invoke()?.content ?? "").toString();
                     if (rawName.length <= 1 || rawName[0] !== "@") continue;
                     const childPos = child.method("get_position").invoke();
                     // Project button center onto the ray
@@ -20179,7 +20179,7 @@ new ButtonInfo({
     if (!GorillaReportButton) throw new Error("[init] ComputerTerminalKey class not found � menu buttons will not work. Check if the class was renamed in the latest game update.");
     const ButtonActivation = GorillaReportButton.method("OnTriggerEnter");
     ButtonActivation.implementation = function (collider) {
-        const rawName = this.method("get_name").invoke().toString();
+        const rawName = (this.method("get_name").invoke()?.content ?? "").toString();
         if (rawName.length > 1 && rawName[0] == "@") {
             if (collider && !collider.isNull?.() && referenceCollider && !referenceCollider.isNull?.() && collider.handle && collider.handle.equals(referenceCollider.handle)) {
                 const goName = rawName.substring(1);
@@ -21623,7 +21623,7 @@ new ButtonInfo({
                         if (!child || child.isNull?.()) continue;
                         const go = child.method("get_gameObject").invoke();
                         if (!go || go.isNull?.()) continue;
-                        const rawName = go.method("get_name").invoke().toString();
+                        const rawName = (go.method("get_name").invoke()?.content ?? "").toString();
                         if (rawName.length > 1 && rawName[0] === "@") {
                             const childPos = child.method("get_position").invoke();
                             const dx = refPos.x - childPos.x;
