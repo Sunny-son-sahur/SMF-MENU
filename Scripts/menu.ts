@@ -20314,7 +20314,7 @@ p.method("RPC_PlayerHit", 5).invoke(10, pos, [0,0,0], dmgNull, false);
             if (runtimeRefMissCount === 1 || runtimeRefMissCount % 120 === 0) {
                 console.warn("[LateUpdate] Runtime refs unavailable; keeping cached state and skipping this frame");
             }
-            return LateUpdate.invoke(this);
+            return;
         }
         runtimeRefMissCount = 0;
         deltaTime = Time.method("get_deltaTime").invoke();
@@ -20656,9 +20656,9 @@ p.method("RPC_PlayerHit", 5).invoke(10, pos, [0,0,0], dmgNull, false);
         prevRightGrab = rightGrab;
         pcPrevMouse0 = rightTrigger;
 
-        return LateUpdate.invoke(this);
+        return;
         } catch(e) {
-            try { return LateUpdate.invoke(this); } catch(_) {}
+            try { return; } catch(_) {}
         }
     };
     
