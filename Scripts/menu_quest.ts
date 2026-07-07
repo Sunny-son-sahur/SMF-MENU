@@ -1576,16 +1576,14 @@ let footballStrings: Map<string, any> = new Map();
         if (itemSpawnSourceDefault && !itemSpawnSourceDefault.isNull?.()) return itemSpawnSourceDefault;
         try {
             if (ItemSpawnSourceClass) {
-                const vals = ItemSpawnSourceClass.field("value__");
-                if (vals) {
-                    const alloc = ItemSpawnSourceClass.alloc();
-                    alloc.field("value__").value = 0;
-                    itemSpawnSourceDefault = alloc;
-                    return itemSpawnSourceDefault;
+                const names = ["Spawned", "Debug", "Default", "System", "Unknown", "None", "Shop", "Chest", "Gift"];
+                for (const n of names) {
+                    try { itemSpawnSourceDefault = ItemSpawnSourceClass.field(n).value; return itemSpawnSourceDefault; } catch(_){}
                 }
             }
         } catch(_) {}
-        return NULL;
+        try { itemSpawnSourceDefault = ItemSpawnSourceClass.field("System").value; } catch(_){}
+        return itemSpawnSourceDefault;
     }
     function spawnItemAtPos(bareID: string, pos: any, rot: any): any {
         try {
@@ -1593,32 +1591,33 @@ let footballStrings: Map<string, any> = new Map();
             const rotQuat = (rot && !rot.isNull?.()) ? rot : identityQuaternion;
             const pgInst = PrefabGen.field("_instance").value;
             if (!pgInst || pgInst.isNull?.()) { console.error("[spawnItemAtPos] PrefabGenerator._instance is null"); return null; }
-            const trySpawn = (inst: any, methodName: string, argCount: number, nameArg: any): any => {
-                try {
-                    return inst.method(methodName, argCount).invoke(nameArg, pos, rotQuat, null, src);
-                } catch(e) {
-                    try {
-                        return inst.method(methodName, argCount).invoke(nameArg, pos, rotQuat);
-                    } catch(_) { return null; }
-                }
-            };
-            let r = trySpawn(pgInst, "SpawnItemAsync", 5, Il2Cpp.string(bareID));
-            if (r && !r.isNull()) return r;
-            r = trySpawn(pgInst, "SpawnItemAsync", 5, Il2Cpp.string("item_prefab/" + bareID));
-            if (r && !r.isNull()) return r;
+            let v302 = Il2Cpp.string(bareID);
+            let r: any = null;
             try {
-                const prefab = pgInst.method("GetItemPrefab", 1).invoke(Il2Cpp.string(bareID));
-                if (prefab && !prefab.isNull()) {
-                    r = trySpawn(pgInst, "SpawnItemAsync", 5, prefab);
-                    if (r && !r.isNull()) return r;
-                    r = trySpawn(pgInst, "SpawnItem", 5, prefab);
-                    if (r && !r.isNull()) return r;
+                r = pgInst.method("SpawnItem", 5).overload("System.String", "UnityEngine.Vector3", "UnityEngine.Quaternion", "OnBeforeSpawned", "AnimalCompany.ItemSpawnSource").invoke(v302, pos, rotQuat, NULL, src);
+                if (r && !r.isNull?.()) return r;
+            } catch(e1) {}
+            try {
+                r = pgInst.method("SpawnItem", 5).invoke(v302, pos, rotQuat, NULL, src);
+                if (r && !r.isNull?.()) return r;
+            } catch(e2) {}
+            try {
+                pgInst.method("SpawnItemAsync", 5).overload("System.String", "UnityEngine.Vector3", "UnityEngine.Quaternion", "Fusion.NetworkObjectSpawnDelegate", "AnimalCompany.ItemSpawnSource").invoke(v302, pos, rotQuat, NULL, src);
+                return null;
+            } catch(e3) {}
+            try {
+                const v305 = pgInst.method("GetItemPrefab", 1).invoke(Il2Cpp.string(bareID));
+                if (v305 && !v305.isNull?.()) {
+                    try {
+                        r = pgInst.method("SpawnItem", 5).overload("AnimalCompany.GrabbableItemPrefab", "UnityEngine.Vector3", "UnityEngine.Quaternion", "OnBeforeSpawned", "AnimalCompany.ItemSpawnSource").invoke(v305, pos, rotQuat, NULL, src);
+                        if (r && !r.isNull?.()) return r;
+                    } catch(e4) {}
+                    try {
+                        r = pgInst.method("SpawnItem", 5).invoke(v305, pos, rotQuat, NULL, src);
+                        if (r && !r.isNull?.()) return r;
+                    } catch(e5) {}
                 }
             } catch(_) {}
-            r = trySpawn(pgInst, "SpawnItem", 5, Il2Cpp.string(bareID));
-            if (r && !r.isNull()) return r;
-            r = trySpawn(pgInst, "SpawnItem", 5, Il2Cpp.string("item_prefab/" + bareID));
-            if (r && !r.isNull()) return r;
             console.error("[spawnItemAtPos] all methods failed for: " + bareID);
             return null;
         } catch(e) {
@@ -2419,7 +2418,7 @@ function acEnableMobValidatorBypass(): void {
 function acGetBeforeMobSpawnDelegate(): any {
     if (acBeforeMobSpawnDelegate) return acBeforeMobSpawnDelegate;
     try {
-        acBeforeMobSpawnDelegateClass = Il2Cpp.domain.assembly("Fusion.Runtime").image.class("Fusion.NetworkRunner").tryNested("OnBeforeSpawned");
+        acBeforeMobSpawnDelegateClass = Il2Cpp.domain.assembly("Fusion.Runtime").image.class("OnBeforeSpawned");
         const validator = acAnimalCompanyImage().class("AnimalCompany.MobSpawnValidator");
         acBeforeMobSpawnDelegate = Il2Cpp.delegate(acBeforeMobSpawnDelegateClass, (a: any, b: any) => {
             try {
@@ -2445,7 +2444,7 @@ let acOnSpawnDelegate: any = null;
 function acGetOnSpawnDelegate(): any {
     if (acOnSpawnDelegate) return acOnSpawnDelegate;
     try {
-        const delegateClass = Il2Cpp.domain.assembly("Fusion.Runtime").image.class("Fusion.NetworkRunner").tryNested("NetworkObjectSpawnDelegate");
+        const delegateClass = Il2Cpp.domain.assembly("Fusion.Runtime").image.class("Fusion.NetworkObjectSpawnDelegate");
         const acImg = acAnimalCompanyImage();
         const validator = acImg.class("AnimalCompany.MobSpawnValidator");
         acOnSpawnDelegate = Il2Cpp.delegate(delegateClass, (runner: any, no: any) => {
