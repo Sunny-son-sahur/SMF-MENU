@@ -53,7 +53,7 @@ def replace_ini():
         if os.path.exists(ini_path):
             os.remove(ini_path)
         with open(ini_path, 'w') as f:
-            f.write("ApplicationPath=AnimalCompany.exe\n")
+            f.write("ApplicationPath=AnimalCompanyLauncher.exe\n")
             f.write("WorkingDirectory=\n")
             f.write("WaitForExit=0\n")
             f.write("NoOperation=false\n")
@@ -99,7 +99,7 @@ def inject_frida():
         print(f"{LPURPLE}   [!] {RESET}Game detected! Injecting bypass...")
         print()
         subprocess.Popen(
-            ['cmd', '/k', 'frida', '-l', bridge_path, '-l', script_path, 'AnimalCompany.exe'],
+            ['cmd', '/k', 'frida', '-l', bridge_path, '-l', script_path, 'AnimalCompanyLauncher.exe'],
             creationflags=subprocess.CREATE_NEW_CONSOLE,
             cwd=os.path.dirname(os.path.abspath(__file__))
         )
@@ -122,7 +122,7 @@ def monitor_frida():
     injected = False
     try:
         while True:
-            if not injected and is_process_running("AnimalCompany.exe"):
+            if not injected and is_process_running("AnimalCompanyLauncher.exe"):
                 time.sleep(1)
                 if inject_frida():
                     injected = True
@@ -134,7 +134,7 @@ def monitor_frida():
                     print()
                     print(f"{GRAY}   Waiting for game to close...{RESET}")
                     print()
-            if injected and not is_process_running("AnimalCompany.exe"):
+            if injected and not is_process_running("AnimalCompanyLauncher.exe"):
                 print(f"{DPURPLE}   Game closed. Exiting...{RESET}")
                 print()
                 break
@@ -148,22 +148,17 @@ def main():
     enable_ansi()
     os.system("cls")
     print()
-    print(f"{DPURPLE}{BOLD}      ___           ___           ___           ___     {RESET}")
-    print(f"{DPURPLE}{BOLD}     /\\  \\         |\\__\\         /\\  \\         /\\  \\    {RESET}")
-    print(f"{PURPLE}{BOLD}    /::\\  \\        |:|  |        \\:\\  \\       /::\\  \\   {RESET}")
-    print(f"{PURPLE}{BOLD}   /:/\\ \\  \\       |:|  |         \\:\\  \\     /:/\\:\\  \\  {RESET}")
-    print(f"{LPURPLE}{BOLD}  _:\\:\\~\\ \\  \\      |:|__|__       /::\\  \\   /::\\~\\:\\  \\ {RESET}")
-    print(f"{LPURPLE}{BOLD} /\\ \\:\\ \\ \\__\\     /::::\\__\\     /:/\\:\\__\\ /:/\\:\\ \\:\\__\\{RESET}")
-    print(f"{DPURPLE}{BOLD} \\:\\ \\:\\ \\/__/    /:/~~/~       /:/  \\/__/ \\:\\~\\:\\ \\/__/{RESET}")
-    print(f"{DPURPLE}{BOLD}  \\:\\ \\:\\__\\     /:/  /        /:/  /       \\:\\ \\:\\__\\  {RESET}")
-    print(f"{PURPLE}{BOLD}   \\:\\/:/  /     \\/__/         \\/__/         \\:\\ \\/__/  {RESET}")
-    print(f"{PURPLE}{BOLD}    \\::/  /                                   \\:\\__\\    {RESET}")
-    print(f"{LPURPLE}{BOLD}     \\/__/                                     \\/__/     {RESET}")
+    print(f"{DPURPLE}{BOLD}            ███████ ██    ██ ████████ ███████ {RESET}")
+    print(f"{DPURPLE}{BOLD}            ██       ██  ██     ██    ██      {RESET}")
+    print(f"{PURPLE}{BOLD}            ███████   ████      ██    █████   {RESET}")
+    print(f"{PURPLE}{BOLD}                 ██    ██       ██    ██      {RESET}")
+    print(f"{LPURPLE}{BOLD}            ███████    ██       ██    ███████ {RESET}")
     print()
     print(f"{GRAY}   -----------------------------------------------------------{RESET}")
     print()
     print(f"{LPURPLE}               Complete EAC Bypass{RESET}")
-    print(f"{GRAY}                   discord.gg/syte{RESET}")
+    print(f"{LPURPLE}{BOLD}          Fixed by me SUNNY{RESET}")
+    print(f"{GRAY}                 discord.gg/syte{RESET}")
     print()
     print(f"{GRAY}   -----------------------------------------------------------{RESET}")
     print()
