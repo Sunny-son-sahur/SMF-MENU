@@ -199,7 +199,13 @@ var Il2Cpp;
         createDirectoryRecursively(path);
         const destination = `${path}/${fileName}`;
         const file = new File(destination, "w");
-        for (const assembly of Il2Cpp.domain.assemblies) {
+        const assemblies = Il2Cpp.domain.assemblies;
+        // Write image index list at the top of the dump
+        for (let i = 0; i < assemblies.length; i++) {
+            file.write(`// Image ${i}: ${assemblies[i].name}.dll\n`);
+        }
+        file.write(`\n`);
+        for (const assembly of assemblies) {
             inform(`dumping ${assembly.name}...`);
             for (const klass of assembly.image.classes) {
                 file.write(`${klass}\n\n`);
@@ -323,226 +329,226 @@ var Il2Cpp;
      */
     Il2Cpp.exports = {
         get alloc() {
-            return r("a__ZZYIkqdm", "pointer", ["size_t"]);
+            return r("il2cpp_alloc", "pointer", ["size_t"]);
         },
         get arrayGetLength() {
-            return r("JwkALyTSbkH", "uint32", ["pointer"]);
+            return r("il2cpp_array_length", "uint32", ["pointer"]);
         },
         get arrayNew() {
-            return r("KnNmXYnHHZu", "pointer", ["pointer", "uint32"]);
+            return r("il2cpp_array_new", "pointer", ["pointer", "uint32"]);
         },
         get assemblyGetImage() {
-            return r("hDkhLRLgeew", "pointer", ["pointer"]);
+            return r("il2cpp_assembly_get_image", "pointer", ["pointer"]);
         },
         get classForEach() {
-            return r("sUjTAqLorFX", "void", ["pointer", "pointer"]);
+            return r("il2cpp_class_for_each", "void", ["pointer", "pointer"]);
         },
         get classFromName() {
-            return r("KkKxDTxPbgO", "pointer", ["pointer", "pointer", "pointer"]);
+            return r("il2cpp_class_from_name", "pointer", ["pointer", "pointer", "pointer"]);
         },
         get classFromObject() {
-            return r("sYEcXvwSZnT", "pointer", ["pointer"]);
+            return r("il2cpp_class_from_system_type", "pointer", ["pointer"]);
         },
         get classGetArrayClass() {
-            return r("jIOVDeJsFsH", "pointer", ["pointer", "uint32"]);
+            return r("il2cpp_array_class_get", "pointer", ["pointer", "uint32"]);
         },
         get classGetArrayElementSize() {
-            return r("zqAzzFAGKNQ", "int", ["pointer"]);
+            return r("il2cpp_class_array_element_size", "int", ["pointer"]);
         },
         get classGetAssemblyName() {
-            return r("_LCEmnsTrR_", "pointer", ["pointer"]);
+            return r("il2cpp_class_get_assemblyname", "pointer", ["pointer"]);
         },
         get classGetBaseType() {
-            return r("oBSTPOVjPdZ", "pointer", ["pointer"]);
+            return r("il2cpp_class_enum_basetype", "pointer", ["pointer"]);
         },
         get classGetDeclaringType() {
-            return r("mFGbbfOpERO", "pointer", ["pointer"]);
+            return r("il2cpp_class_get_declaring_type", "pointer", ["pointer"]);
         },
         get classGetElementClass() {
-            return r("SZwYcHULHOb", "pointer", ["pointer"]);
+            return r("il2cpp_class_get_element_class", "pointer", ["pointer"]);
         },
         get classGetFieldFromName() {
-            return r("vHKBHgJnpUH", "pointer", ["pointer", "pointer"]);
+            return r("il2cpp_class_get_field_from_name", "pointer", ["pointer", "pointer"]);
         },
         get classGetFields() {
-            return r("qVsEoqeCpRW", "pointer", ["pointer", "pointer"]);
+            return r("il2cpp_class_get_fields", "pointer", ["pointer", "pointer"]);
         },
         get classGetFlags() {
-            return r("gNdzaaqAQmV", "int", ["pointer"]);
+            return r("il2cpp_class_get_flags", "int", ["pointer"]);
         },
         get classGetImage() {
-            return r("VYycjuVUBWP", "pointer", ["pointer"]);
+            return r("il2cpp_class_get_image", "pointer", ["pointer"]);
         },
         get classGetInstanceSize() {
-            return r("tXPAkIbhUAK", "int32", ["pointer"]);
+            return r("il2cpp_class_instance_size", "int32", ["pointer"]);
         },
         get classGetInterfaces() {
-            return r("_UFsnF_KWhR", "pointer", ["pointer", "pointer"]);
+            return r("il2cpp_class_get_interfaces", "pointer", ["pointer", "pointer"]);
         },
         get classGetMethodFromName() {
-            return r("fXGMKYGHlxH", "pointer", ["pointer", "pointer", "int"]);
+            return r("il2cpp_class_get_method_from_name", "pointer", ["pointer", "pointer", "int"]);
         },
         get classGetMethods() {
-            return r("VGQtKubBxOp", "pointer", ["pointer", "pointer"]);
+            return r("il2cpp_class_get_methods", "pointer", ["pointer", "pointer"]);
         },
         get classGetName() {
-            return r("ZUznTccvNSU", "pointer", ["pointer"]);
+            return r("il2cpp_class_get_name", "pointer", ["pointer"]);
         },
         get classGetNamespace() {
-            return r("xVhzpuXPbJB", "pointer", ["pointer"]);
+            return r("il2cpp_class_get_namespace", "pointer", ["pointer"]);
         },
         get classGetNestedClasses() {
-            return r("PIfRzEidDjI", "pointer", ["pointer", "pointer"]);
+            return r("il2cpp_class_get_nested_types", "pointer", ["pointer", "pointer"]);
         },
         get classGetParent() {
-            return r("nBnUsWmapuD", "pointer", ["pointer"]);
+            return r("il2cpp_class_get_parent", "pointer", ["pointer"]);
         },
         get classGetStaticFieldData() {
-            return r("KcNbcYfgIDG", "pointer", ["pointer"]);
+            return r("il2cpp_class_get_static_field_data", "pointer", ["pointer"]);
         },
         get classGetValueTypeSize() {
-            return r("FsxNwGbVSrG", "int32", ["pointer", "pointer"]);
+            return r("il2cpp_class_value_size", "int32", ["pointer", "pointer"]);
         },
         get classGetType() {
-            return r("SSoScJDDnCl", "pointer", ["pointer"]);
+            return r("il2cpp_class_get_type", "pointer", ["pointer"]);
         },
         get classHasReferences() {
-            return r("NqOrmWBywsy", "bool", ["pointer"]);
+            return r("il2cpp_class_has_references", "bool", ["pointer"]);
         },
         get classInitialize() {
-            return r("IYlkxULSLXV", "void", ["pointer"]);
+            return r("il2cpp_runtime_class_init", "void", ["pointer"]);
         },
         get classIsAbstract() {
-            return r("dbzMKmvXyDq", "bool", ["pointer"]);
+            return r("il2cpp_class_is_abstract", "bool", ["pointer"]);
         },
         get classIsAssignableFrom() {
-            return r("ZUtVpAqalCT", "bool", ["pointer", "pointer"]);
+            return r("il2cpp_class_is_assignable_from", "bool", ["pointer", "pointer"]);
         },
         get classIsBlittable() {
-            return r("WHumMatenwf", "bool", ["pointer"]);
+            return r("il2cpp_class_is_blittable", "bool", ["pointer"]);
         },
         get classIsEnum() {
-            return r("yLyrjeJbt_Y", "bool", ["pointer"]);
+            return r("il2cpp_class_is_enum", "bool", ["pointer"]);
         },
         get classIsGeneric() {
-            return r("JfcHexutOd_", "bool", ["pointer"]);
+            return r("il2cpp_class_is_generic", "bool", ["pointer"]);
         },
         get classIsInflated() {
-            return r("asOngMWGLGu", "bool", ["pointer"]);
+            return r("il2cpp_class_is_inflated", "bool", ["pointer"]);
         },
         get classIsInterface() {
-            return r("QqRjYa_mENJ", "bool", ["pointer"]);
+            return r("il2cpp_class_is_interface", "bool", ["pointer"]);
         },
         get classIsSubclassOf() {
-            return r("OClSjwnkuWm", "bool", ["pointer", "pointer", "bool"]);
+            return r("il2cpp_class_is_subclass_of", "bool", ["pointer", "pointer", "bool"]);
         },
         get classIsValueType() {
-            return r("KHHNbePjUWp", "bool", ["pointer"]);
+            return r("il2cpp_class_is_valuetype", "bool", ["pointer"]);
         },
         get domainGetAssemblyFromName() {
-            return r("GyJpmjSwVNI", "pointer", ["pointer", "pointer"]);
+            return r("il2cpp_domain_assembly_open", "pointer", ["pointer", "pointer"]);
         },
         get domainGet() {
-            return r("wCLzObRXOSu", "pointer", []);
+            return r("il2cpp_domain_get", "pointer", []);
         },
         get domainGetAssemblies() {
-            return r("QCsQNlhfIbp", "pointer", ["pointer", "pointer"]);
+            return r("il2cpp_domain_get_assemblies", "pointer", ["pointer", "pointer"]);
         },
         get fieldGetClass() {
-            return r("OJnoeEQAuZa", "pointer", ["pointer"]);
+            return r("il2cpp_field_get_parent", "pointer", ["pointer"]);
         },
         get fieldGetFlags() {
-            return r("GsFilLMjSlH", "int", ["pointer"]);
+            return r("il2cpp_field_get_flags", "int", ["pointer"]);
         },
         get fieldGetName() {
-            return r("LNIPAuaVlXr", "pointer", ["pointer"]);
+            return r("il2cpp_field_get_name", "pointer", ["pointer"]);
         },
         get fieldGetOffset() {
-            return r("FIaZytGf_Pq", "int32", ["pointer"]);
+            return r("il2cpp_field_get_offset", "int32", ["pointer"]);
         },
         get fieldGetStaticValue() {
-            return r("jwrUGCfyDLb", "void", ["pointer", "pointer"]);
+            return r("il2cpp_field_static_get_value", "void", ["pointer", "pointer"]);
         },
         get fieldGetType() {
-            return r("tOOXyoNKpxy", "pointer", ["pointer"]);
+            return r("il2cpp_field_get_type", "pointer", ["pointer"]);
         },
         get fieldSetStaticValue() {
-            return r("tDfRhPCONuO", "void", ["pointer", "pointer"]);
+            return r("il2cpp_field_static_set_value", "void", ["pointer", "pointer"]);
         },
         get free() {
-            return r("kJnJsYwAsCC", "void", ["pointer"]);
+            return r("il2cpp_free", "void", ["pointer"]);
         },
         get gcCollect() {
-            return r("nqEGCvlnvRW", "void", ["int"]);
+            return r("il2cpp_gc_collect", "void", ["int"]);
         },
         get gcCollectALittle() {
-            return r("MyYzEpJOxFW", "void", []);
+            return r("il2cpp_gc_collect_a_little", "void", []);
         },
         get gcDisable() {
-            return r("FtihVIqvonR", "void", []);
+            return r("il2cpp_gc_disable", "void", []);
         },
         get gcEnable() {
-            return r("JWPnuBlBfkx", "void", []);
+            return r("il2cpp_gc_enable", "void", []);
         },
         get gcGetHeapSize() {
-            return r("UaxdGVAYMel", "int64", []);
+            return r("il2cpp_gc_get_heap_size", "int64", []);
         },
         get gcGetMaxTimeSlice() {
-            return r("STrDMpakosz", "int64", []);
+            return r("il2cpp_gc_get_max_time_slice_ns", "int64", []);
         },
         get gcGetUsedSize() {
-            return r("VApnsUVEQSQ", "int64", []);
+            return r("il2cpp_gc_get_used_size", "int64", []);
         },
         get gcHandleGetTarget() {
-            return r("ciGzpVWQcFo", "pointer", ["uint32"]);
+            return r("il2cpp_gchandle_get_target", "pointer", ["uint32"]);
         },
         get gcHandleFree() {
-            return r("OeaoqwyRQBJ", "void", ["uint32"]);
+            return r("il2cpp_gchandle_free", "void", ["uint32"]);
         },
         get gcHandleNew() {
-            return r("nbfMxz_J_NG", "uint32", ["pointer", "bool"]);
+            return r("il2cpp_gchandle_new", "uint32", ["pointer", "bool"]);
         },
         get gcHandleNewWeakRef() {
-            return r("EkCPE_pvPYF", "uint32", ["pointer", "bool"]);
+            return r("il2cpp_gchandle_new_weakref", "uint32", ["pointer", "bool"]);
         },
         get gcIsDisabled() {
-            return r("bxgPbJlloYj", "bool", []);
+            return r("il2cpp_gc_is_disabled", "bool", []);
         },
         get gcIsIncremental() {
-            return r("cYxcBczPiOD", "bool", []);
+            return r("il2cpp_gc_is_incremental", "bool", []);
         },
         get gcSetMaxTimeSlice() {
-            return r("POvURsUPrYQ", "void", ["int64"]);
+            return r("il2cpp_gc_set_max_time_slice_ns", "void", ["int64"]);
         },
         get gcStartIncrementalCollection() {
-            return r("tiYlroplxWf", "void", []);
+            return r("il2cpp_gc_start_incremental_collection", "void", []);
         },
         get gcStartWorld() {
-            return r("kdmOKTuwBan", "void", []);
+            return r("il2cpp_start_gc_world", "void", []);
         },
         get gcStopWorld() {
-            return r("RJedOIBOlGC", "void", []);
+            return r("il2cpp_stop_gc_world", "void", []);
         },
         get getCorlib() {
-            return r("Bw_TTa_tHFr", "pointer", []);
+            return r("il2cpp_get_corlib", "pointer", []);
         },
         get imageGetAssembly() {
-            return r("vDvGKIOwhKV", "pointer", ["pointer"]);
+            return r("il2cpp_image_get_assembly", "pointer", ["pointer"]);
         },
         get imageGetClass() {
-            return r("ByDkBdHfkdY", "pointer", ["pointer", "uint"]);
+            return r("il2cpp_image_get_class", "pointer", ["pointer", "uint"]);
         },
         get imageGetClassCount() {
-            return r("kYxxbTKJchn", "uint32", ["pointer"]);
+            return r("il2cpp_image_get_class_count", "uint32", ["pointer"]);
         },
         get imageGetName() {
-            return r("rexsCibGJvJ", "pointer", ["pointer"]);
+            return r("il2cpp_image_get_name", "pointer", ["pointer"]);
         },
         get initialize() {
-            return r("XeIEvYU_Q_T", "void", ["pointer"]);
+            return r("il2cpp_init", "void", ["pointer"]);
         },
         get livenessAllocateStruct() {
-            return r("SmJsnzVScEd", "pointer", ["pointer", "int", "pointer", "pointer", "pointer"]);
+            return r("il2cpp_unity_liveness_allocate_struct", "pointer", ["pointer", "int", "pointer", "pointer", "pointer"]);
         },
         get livenessCalculationBegin() {
             return r("il2cpp_unity_liveness_calculation_begin", "pointer", ["pointer", "int", "pointer", "pointer", "pointer", "pointer"]);
@@ -551,19 +557,19 @@ var Il2Cpp;
             return r("il2cpp_unity_liveness_calculation_end", "void", ["pointer"]);
         },
         get livenessCalculationFromStatics() {
-            return r("zoWpcfEZngn", "void", ["pointer"]);
+            return r("il2cpp_unity_liveness_calculation_from_statics", "void", ["pointer"]);
         },
         get livenessFinalize() {
-            return r("gYybXHoYOjs", "void", ["pointer"]);
+            return r("il2cpp_unity_liveness_finalize", "void", ["pointer"]);
         },
         get livenessFreeStruct() {
-            return r("XGWuUHEwpuT", "void", ["pointer"]);
+            return r("il2cpp_unity_liveness_free_struct", "void", ["pointer"]);
         },
         get memorySnapshotCapture() {
-            return r("bicMkCZWZVT", "pointer", []);
+            return r("il2cpp_capture_memory_snapshot", "pointer", []);
         },
         get memorySnapshotFree() {
-            return r("AYEkIDyvYVv", "void", ["pointer"]);
+            return r("il2cpp_free_captured_memory_snapshot", "void", ["pointer"]);
         },
         get memorySnapshotGetClasses() {
             return r("il2cpp_memory_snapshot_get_classes", "pointer", ["pointer", "pointer"]);
@@ -572,124 +578,124 @@ var Il2Cpp;
             return r("il2cpp_memory_snapshot_get_objects", "pointer", ["pointer", "pointer"]);
         },
         get methodGetClass() {
-            return r("EEfpeMdmGDe", "pointer", ["pointer"]);
+            return r("il2cpp_method_get_class", "pointer", ["pointer"]);
         },
         get methodGetFlags() {
-            return r("bkrOvCHGbLS", "uint32", ["pointer", "pointer"]);
+            return r("il2cpp_method_get_flags", "uint32", ["pointer", "pointer"]);
         },
         get methodGetName() {
-            return r("oJlBweHtmlI", "pointer", ["pointer"]);
+            return r("il2cpp_method_get_name", "pointer", ["pointer"]);
         },
         get methodGetObject() {
-            return r("BRrZgVFozno", "pointer", ["pointer", "pointer"]);
+            return r("il2cpp_method_get_object", "pointer", ["pointer", "pointer"]);
         },
         get methodGetParameterCount() {
-            return r("zIuNXlaoiuq", "uint8", ["pointer"]);
+            return r("il2cpp_method_get_param_count", "uint8", ["pointer"]);
         },
         get methodGetParameterName() {
-            return r("yrtqWbYIzrL", "pointer", ["pointer", "uint32"]);
+            return r("il2cpp_method_get_param_name", "pointer", ["pointer", "uint32"]);
         },
         get methodGetParameters() {
             return r("il2cpp_method_get_parameters", "pointer", ["pointer", "pointer"]);
         },
         get methodGetParameterType() {
-            return r("HTFDrhjhYVX", "pointer", ["pointer", "uint32"]);
+            return r("il2cpp_method_get_param", "pointer", ["pointer", "uint32"]);
         },
         get methodGetReturnType() {
-            return r("syBOtpohNLU", "pointer", ["pointer"]);
+            return r("il2cpp_method_get_return_type", "pointer", ["pointer"]);
         },
         get methodIsGeneric() {
-            return r("KgzLZOfNqJk", "bool", ["pointer"]);
+            return r("il2cpp_method_is_generic", "bool", ["pointer"]);
         },
         get methodIsInflated() {
-            return r("DZQovwxTsjM", "bool", ["pointer"]);
+            return r("il2cpp_method_is_inflated", "bool", ["pointer"]);
         },
         get methodIsInstance() {
-            return r("HTvhDkieeEc", "bool", ["pointer"]);
+            return r("il2cpp_method_is_instance", "bool", ["pointer"]);
         },
         get monitorEnter() {
-            return r("MiTVUeICXNt", "void", ["pointer"]);
+            return r("il2cpp_monitor_enter", "void", ["pointer"]);
         },
         get monitorExit() {
-            return r("ijHbQiTGCkd", "void", ["pointer"]);
+            return r("il2cpp_monitor_exit", "void", ["pointer"]);
         },
         get monitorPulse() {
-            return r("hHrrFdyWRJo", "void", ["pointer"]);
+            return r("il2cpp_monitor_pulse", "void", ["pointer"]);
         },
         get monitorPulseAll() {
-            return r("oLVdFBjFPhJ", "void", ["pointer"]);
+            return r("il2cpp_monitor_pulse_all", "void", ["pointer"]);
         },
         get monitorTryEnter() {
-            return r("LGhMv_Pqjnu", "bool", ["pointer", "uint32"]);
+            return r("il2cpp_monitor_try_enter", "bool", ["pointer", "uint32"]);
         },
         get monitorTryWait() {
-            return r("oSloJpjMWmN", "bool", ["pointer", "uint32"]);
+            return r("il2cpp_monitor_try_wait", "bool", ["pointer", "uint32"]);
         },
         get monitorWait() {
-            return r("PSXucNGRnUh", "void", ["pointer"]);
+            return r("il2cpp_monitor_wait", "void", ["pointer"]);
         },
         get objectGetClass() {
-            return r("rpSOwTJXkki", "pointer", ["pointer"]);
+            return r("il2cpp_object_get_class", "pointer", ["pointer"]);
         },
         get objectGetVirtualMethod() {
-            return r("plvQareRfmV", "pointer", ["pointer", "pointer"]);
+            return r("il2cpp_object_get_virtual_method", "pointer", ["pointer", "pointer"]);
         },
         get objectInitialize() {
-            return r("mHezQPQlJzC", "void", ["pointer", "pointer"]);
+            return r("il2cpp_runtime_object_init_exception", "void", ["pointer", "pointer"]);
         },
         get objectNew() {
-            return r("RpTgKbnjDtW", "pointer", ["pointer"]);
+            return r("il2cpp_object_new", "pointer", ["pointer"]);
         },
         get objectGetSize() {
-            return r("VojbsxhKRQB", "uint32", ["pointer"]);
+            return r("il2cpp_object_get_size", "uint32", ["pointer"]);
         },
         get objectUnbox() {
-            return r("UWeZOKOPPkv", "pointer", ["pointer"]);
+            return r("il2cpp_object_unbox", "pointer", ["pointer"]);
         },
         get resolveInternalCall() {
-            return r("umSEfDcwxcE", "pointer", ["pointer"]);
+            return r("il2cpp_resolve_icall", "pointer", ["pointer"]);
         },
         get stringGetChars() {
-            return r("BwSHYWFLzWQ", "pointer", ["pointer"]);
+            return r("il2cpp_string_chars", "pointer", ["pointer"]);
         },
         get stringGetLength() {
-            return r("yeMUiRwzybC", "int32", ["pointer"]);
+            return r("il2cpp_string_length", "int32", ["pointer"]);
         },
         get stringNew() {
-            return r("IxGvakP_VJQ", "pointer", ["pointer"]);
+            return r("il2cpp_string_new", "pointer", ["pointer"]);
         },
         get valueTypeBox() {
-            return r("ZjWyghUqhiE", "pointer", ["pointer", "pointer"]);
+            return r("il2cpp_value_box", "pointer", ["pointer", "pointer"]);
         },
         get threadAttach() {
-            return r("SnLfphasdXg", "pointer", ["pointer"]);
+            return r("il2cpp_thread_attach", "pointer", ["pointer"]);
         },
         get threadDetach() {
-            return r("cQJzTJEFmyZ", "void", ["pointer"]);
+            return r("il2cpp_thread_detach", "void", ["pointer"]);
         },
         get threadGetAttachedThreads() {
             return r("il2cpp_thread_get_all_attached_threads", "pointer", ["pointer"]);
         },
         get threadGetCurrent() {
-            return r("NnEeZEtErqp", "pointer", []);
+            return r("il2cpp_thread_current", "pointer", []);
         },
         get threadIsVm() {
-            return r("SHjtKOlbiMD", "bool", ["pointer"]);
+            return r("il2cpp_is_vm_thread", "bool", ["pointer"]);
         },
         get typeEquals() {
-            return r("V_nbvNRQoxm", "bool", ["pointer", "pointer"]);
+            return r("il2cpp_type_equals", "bool", ["pointer", "pointer"]);
         },
         get typeGetClass() {
-            return r("FYxZrVwXBpO", "pointer", ["pointer"]);
+            return r("il2cpp_class_from_type", "pointer", ["pointer"]);
         },
         get typeGetName() {
-            return r("y_wJeRGuxJQ", "pointer", ["pointer"]);
+            return r("il2cpp_type_get_name", "pointer", ["pointer"]);
         },
         get typeGetObject() {
-            return r("xteSzUoN_or", "pointer", ["pointer"]);
+            return r("il2cpp_type_get_object", "pointer", ["pointer"]);
         },
         get typeGetTypeEnum() {
-            return r("eosEmuWoInW", "int", ["pointer"]);
+            return r("il2cpp_type_get_type", "int", ["pointer"]);
         }
     };
     decorate(Il2Cpp.exports, lazy);
@@ -1308,17 +1314,7 @@ var Il2Cpp;
         // initialization is not completed yet.
         if (Il2Cpp.exports.getCorlib().isNull()) {
             return await new Promise(resolve => {
-                const timeout = setTimeout(() => {
-                    if (!Il2Cpp.exports.getCorlib().isNull()) {
-                        warn(`resuming execution despite IL2CPP initialization not being captured in time, please open an issue as this is suboptimal`);
-                        interceptor.detach();
-                        resolve(false);
-                    }
-                }, 1000);
                 const interceptor = Interceptor.attach(Il2Cpp.exports.initialize, {
-                    onEnter() {
-                        clearTimeout(timeout);
-                    },
                     onLeave() {
                         interceptor.detach();
                         blocking ? resolve(true) : setImmediate(() => resolve(false));
@@ -1333,8 +1329,8 @@ var Il2Cpp;
         const [moduleName, fallback] = getExpectedModuleNames();
         return (Process.findModuleByName(moduleName) ??
             Process.findModuleByName(fallback ?? moduleName) ??
-            (Process.platform == "darwin" ? Process.findModuleByAddress(DebugSymbol.fromName("il2cpp_init").address) : undefined) ??
-            undefined);
+            (Process.platform == "darwin" ? Process.findModuleByAddress(DebugSymbol.fromName("il2cpp_init").address) : undefined)
+            ?? undefined);
     }
     function getExpectedModuleNames() {
         if (Il2Cpp.$config.moduleName) {
@@ -1350,35 +1346,6 @@ var Il2Cpp;
         }
         raise(`${Process.platform} is not supported yet`);
     }
-})(Il2Cpp || (Il2Cpp = {}));
-var Il2Cpp;
-(function (Il2Cpp) {
-    function nullable(valueOrNull, klass) {
-        const actualClass = typeof valueOrNull == "boolean"
-            ? Il2Cpp.corlib.class("System.Boolean")
-            : typeof valueOrNull == "number"
-                ? (klass ?? Il2Cpp.corlib.class("System.Int32"))
-                : valueOrNull instanceof Int64
-                    ? Il2Cpp.corlib.class("System.Int64")
-                    : valueOrNull instanceof UInt64
-                        ? Il2Cpp.corlib.class("System.UInt64")
-                        : valueOrNull instanceof NativePointer
-                            ? (klass ?? Il2Cpp.corlib.class("System.IntPtr"))
-                            : valueOrNull instanceof Il2Cpp.ValueType
-                                ? valueOrNull.type.class
-                                : (klass ?? raise(`A class must be specified when constructing a nullable for value '${valueOrNull}'`));
-        if (actualClass.isValueType == false) {
-            raise(`Cannot create nullable value type out of a reference type '${actualClass.type.name}'`);
-        }
-        const inflatedClass = Il2Cpp.corlib.class("System.Nullable`1").inflate(actualClass);
-        const struct = new Il2Cpp.ValueType(Memory.alloc(inflatedClass.valueTypeSize), inflatedClass.type);
-        (struct.tryField("hasValue") ?? struct.field("has_value")).value = valueOrNull != null;
-        if (valueOrNull != null) {
-            struct.field("value").value = valueOrNull;
-        }
-        return struct;
-    }
-    Il2Cpp.nullable = nullable;
 })(Il2Cpp || (Il2Cpp = {}));
 var Il2Cpp;
 (function (Il2Cpp) {
@@ -1719,12 +1686,10 @@ var Il2Cpp;
             // We previosly obtained an array whose content is known by calling
             // 'System.String::Split(NULL)' on a known string. However, that
             // method invocation somehow blows things up in Unity 2018.3.0f1.
-            //
-            // See https://github.com/vfsfitvnm/frida-il2cpp-bridge/pull/717
-            const array = Il2Cpp.string("vfsfitvnm").object.method("ToCharArray", 0).invoke();
+            const array = Il2Cpp.string("v").object.method("ToCharArray", 0).invoke();
             // prettier-ignore
-            const offset = Memory.scanSync(array.handle, 0xff, "76 00 66 00 73 00 66 00 69 00 74 00 76 00 6e 00 6d 00")[0]?.address?.sub(array.handle)
-                ?? raise("couldn't find the elements offset in the native array struct");
+            const offset = array.handle.offsetOf(_ => _.readS16() == 118) ??
+                raise("couldn't find the elements offset in the native array struct");
             // prettier-ignore
             getter(Il2Cpp.Array.prototype, "elements", function () {
                 return new Il2Cpp.Pointer(this.handle.add(offset), this.elementType);
@@ -2101,15 +2066,76 @@ var Il2Cpp;
         }
         /** */
         toString() {
-            const inherited = [this.parent].concat(this.interfaces);
-            return `\
-// ${this.assemblyName}
-${this.isEnum ? `enum` : this.isStruct ? `struct` : this.isInterface ? `interface` : `class`} \
-${this.type.name}\
-${inherited ? ` : ${inherited.map(_ => _?.type.name).join(`, `)}` : ``}
+            // Helper: get simple (unqualified) name for a type
+            function simpleTypeName(type) {
+                try { return type.class.name; } catch (_) {
+                    return type.name.replace(/(?:[A-Za-z_]\w*\.)+([A-Za-z_][\w`\[\]*&,<>]*)/g, "$1");
+                }
+            }
+            const flags = this.flags;
+            const isSealed = (flags & 0x100) != 0;
+            const isSerializable = (flags & 0x2000) != 0;
+            const isStaticClass = this.isAbstract && isSealed && !this.isInterface && !this.isEnum && !this.isStruct;
+            // Access modifier from visibility bits
+            const vis = flags & 7;
+            const access = vis === 1 ? "public" : vis === 2 ? "public" : vis === 3 ? "private" :
+                           vis === 4 ? "protected" : vis === 5 ? "internal" :
+                           vis === 6 ? "private protected" : vis === 7 ? "protected internal" : "internal";
+            // Extra class modifiers
+            const mods = [];
+            if (!this.isInterface && !this.isEnum && !this.isStruct) {
+                if (isStaticClass) mods.push("static");
+                else if (this.isAbstract) mods.push("abstract");
+                else if (isSealed) mods.push("sealed");
+            }
+            const keyword = this.isEnum ? "enum" : this.isStruct ? "struct" : this.isInterface ? "interface" : "class";
+            // Parent (skip Object/ValueType/Enum/MulticastDelegate/Delegate)
+            let parentStr = "";
+            try {
+                const par = this.parent?.asNullable?.() ?? this.parent;
+                if (par && par.name && !["Object","ValueType","Enum","MulticastDelegate","Delegate"].includes(par.name)) {
+                    parentStr = ` : ${par.name}`;
+                }
+            } catch (_) {}
+            // Fields
+            const allFields = this.fields;
+            const fieldLines = allFields.length > 0
+                ? allFields.map(f => `\t${f}`).join("\n") + "\n"
+                : "";
+            // Detect properties from get_X / set_X method pairs
+            const allMethods = this.methods;
+            const propMap = {};
+            for (const m of allMethods) {
+                const match = m.name.match(/^(get|set)_(.+)$/);
+                if (match) {
+                    const pn = match[2];
+                    if (!propMap[pn]) propMap[pn] = {};
+                    propMap[pn][match[1]] = m;
+                }
+            }
+            const propLines = Object.keys(propMap).map(pn => {
+                const g = propMap[pn].get, s = propMap[pn].set;
+                let retType;
+                try { retType = g ? simpleTypeName(g.returnType) : simpleTypeName(s.parameters[0].type); } catch(_) { retType = "?"; }
+                const mainMod = (g ? g.modifier : s?.modifier) ?? "public";
+                const gPart = g ? ((g.modifier && g.modifier !== mainMod ? g.modifier + " " : "") + "get; ") : "";
+                const sPart = s ? ((s.modifier && s.modifier !== mainMod ? s.modifier + " " : "") + "set; ") : "";
+                return `\t${mainMod} ${retType} ${pn} { ${gPart}${sPart}}`;
+            }).join("\n");
+            // Method lines (each method's toString already includes the RVA/VA comment line)
+            const methodLines = allMethods.map(m => `\t${m}`).join("\n");
+            const attrStr = isSerializable ? "[Serializable]\n" : "";
+            const modStr = mods.length > 0 ? " " + mods.join(" ") : "";
+            return `// Dll : ${this.assemblyName}.dll
+// Namespace: ${this.namespace ?? ""}
+${attrStr}${access}${modStr} ${keyword} ${this.name}${parentStr}
 {
-    ${this.fields.join(`\n    `)}
-    ${this.methods.join(`\n    `)}
+\t// Fields
+${fieldLines}
+\t// Properties
+${propLines ? propLines + "\n" : ""}
+\t// Methods
+${methodLines}
 }`;
         }
         /** Executes a callback for every defined class. */
@@ -2377,13 +2403,25 @@ var Il2Cpp;
         }
         /** */
         toString() {
-            return `\
-${this.isThreadStatic ? `[ThreadStatic] ` : ``}\
-${this.isStatic ? `static ` : ``}\
-${this.type.name} \
-${this.name}\
-${this.isLiteral ? ` = ${this.type.class.isEnum ? Il2Cpp.read(this.value.handle, this.type.class.baseType) : this.value}` : ``};\
-${this.isThreadStatic || this.isLiteral ? `` : ` // 0x${this.offset.toString(16)}`}`;
+            let typeName;
+            try { typeName = this.type.class.name; } catch (_) { typeName = this.type.name; }
+            const isReadOnly = (this.flags & 0x20) != 0; // InitOnly
+            const modifier = this.modifier ?? "public";
+            const parts = [modifier];
+            if (this.isThreadStatic) parts.unshift("[ThreadStatic]");
+            if (this.isStatic && !this.isLiteral) parts.push("static");
+            if (isReadOnly && !this.isLiteral) parts.push("readonly");
+            if (this.isLiteral) parts.push("const");
+            parts.push(typeName, this.name);
+            let line = parts.join(" ");
+            if (this.isLiteral) {
+                line += ` = ${this.type.class.isEnum ? Il2Cpp.read(this.value.handle, this.type.class.baseType) : this.value}`;
+            }
+            line += ";";
+            if (!this.isThreadStatic && !this.isLiteral) {
+                line += ` // 0x${this.offset.toString(16)}`;
+            }
+            return line;
         }
         /**
          * @internal
@@ -2610,7 +2648,7 @@ var Il2Cpp;
         }
         /** Gets the generic parameters of this generic method. */
         get generics() {
-            if (!this.isGeneric) {
+            if (!this.isGeneric && !this.isInflated) {
                 return [];
             }
             const types = this.object.method("GetGenericArguments").invoke();
@@ -2878,13 +2916,22 @@ var Il2Cpp;
         }
         /** */
         toString() {
-            return `\
-${this.isStatic ? `static ` : ``}\
-${this.returnType.name} \
-${this.name}\
-${this.generics.length > 0 ? `<${this.generics.map(_ => _.type.name).join(",")}>` : ""}\
-(${this.parameters.join(`, `)});\
-${this.virtualAddress.isNull() ? `` : ` // 0x${this.relativeVirtualAddress.toString(16).padStart(8, `0`)}`}`;
+            let retTypeName;
+            try { retTypeName = this.returnType.class.name; } catch (_) { retTypeName = this.returnType.name; }
+            const modifier = this.modifier ?? "public";
+            const staticStr = this.isStatic ? "static " : "";
+            const genericsStr = this.generics.length > 0 ? `<${this.generics.map(_ => _.type.name).join(",")}>` : "";
+            const paramsStr = this.parameters.join(`, `);
+            const isNull = this.virtualAddress.isNull();
+            let rvaStr, vaStr;
+            if (isNull) {
+                rvaStr = "0x";
+                vaStr = "0x0";
+            } else {
+                rvaStr = `0x${this.relativeVirtualAddress.toString(16)}`;
+                vaStr = this.virtualAddress.toString();
+            }
+            return `// RVA: ${rvaStr} VA: ${vaStr}\n\t${modifier} ${staticStr}${retTypeName} ${this.name}${genericsStr}(${paramsStr}) { }`;
         }
         /**
          * @internal
@@ -3137,7 +3184,11 @@ var Il2Cpp;
         }
         /** */
         toString() {
-            return this.isNull() ? "null" : this.method("ToString", 0).invoke().content ?? "null";
+            try {
+                return this.isNull() ? "null" : this.method<Il2Cpp.String>("ToString", 0).invoke().content ?? "null";
+            } catch (error) {
+                return "Error: ToString failed";
+            }
         }
         /** Unboxes the value type (either a primitive, a struct or an enum) out of this object. */
         unbox() {
@@ -3215,7 +3266,9 @@ var Il2Cpp;
         }
         /** */
         toString() {
-            return `${this.type.name} ${this.name}`;
+            let typeName;
+            try { typeName = this.type.class.name; } catch (_) { typeName = this.type.name; }
+            return `${typeName} ${this.name}`;
         }
     }
     Il2Cpp.Parameter = Parameter;
@@ -3663,12 +3716,16 @@ var Il2Cpp;
         }
         /** Gets the name of this type. */
         get name() {
-            const handle = Il2Cpp.exports.typeGetName(this);
+            try {
+                const handle = Il2Cpp.exports.typeGetName(this);
             try {
                 return handle.readUtf8String();
             }
             finally {
                 Il2Cpp.free(handle);
+            }
+            } catch {
+                return "Error: ToString failed"
             }
         }
         /** Gets the encompassing object of the current type. */
@@ -3806,7 +3863,6 @@ var Il2Cpp;
 /// <reference path="./gc.ts">/>
 /// <reference path="./memory.ts">/>
 /// <reference path="./module.ts">/>
-/// <reference path="./nullable.ts">/>
 /// <reference path="./perform.ts">/>
 /// <reference path="./tracer.ts">/>
 /// <reference path="./structs/array.ts">/>
