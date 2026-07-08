@@ -3829,6 +3829,7 @@ var Il2Cpp;
 /// <reference path="./structs/value-type.ts">/>
 globalThis.Il2Cpp = Il2Cpp;
 //# sourceMappingURL=index.js.map
+// ===== Il2Cpp Exports / Symbols =====
 // DUMPED BY N5, credits to juelz for original version
 // Unity 6000.3.12f1 | Build 24029070
 
@@ -4068,4 +4069,3 @@ Il2Cpp.$config.exports = {
 	il2cpp_set_default_thread_affinity: () => Il2Cpp.module.findExportByName("NoEYvHyTFnI"),
 	il2cpp_unity_set_android_network_up_state_func: () => Il2Cpp.module.findExportByName("fnrsNALBWpQ"),
 };
-
