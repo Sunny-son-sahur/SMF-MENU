@@ -89,20 +89,23 @@ def main():
     eac_data = os.path.join(GAME_DIR, "EACLauncher_Data")
     game_data = os.path.join(GAME_DIR, "AnimalCompany_Data")
 
-    spin_msg("Removing EAC launcher...")
-    if os.path.exists(eac_exe):
-        os.remove(eac_exe)
-    print(f"{LPURPLE}   [+] {RESET}Deleted EACLauncher.exe")
+    if not os.path.exists(game_exe):
+        print(f"{LPURPLE}   [+] {RESET}Already set up")
+    else:
+        spin_msg("Removing EAC launcher...")
+        if os.path.exists(eac_exe):
+            os.remove(eac_exe)
+        print(f"{LPURPLE}   [+] {RESET}Deleted EACLauncher.exe")
 
-    spin_msg("Renaming game executable...")
-    if os.path.exists(game_exe) and not os.path.exists(eac_exe):
-        os.rename(game_exe, eac_exe)
-    print(f"{LPURPLE}   [+] {RESET}Renamed AnimalCompany.exe -> EACLauncher.exe")
+        spin_msg("Renaming game executable...")
+        if os.path.exists(game_exe) and not os.path.exists(eac_exe):
+            os.rename(game_exe, eac_exe)
+        print(f"{LPURPLE}   [+] {RESET}Renamed AnimalCompany.exe -> EACLauncher.exe")
 
-    spin_msg("Renaming game data...")
-    if os.path.exists(game_data) and not os.path.exists(eac_data):
-        os.rename(game_data, eac_data)
-    print(f"{LPURPLE}   [+] {RESET}Renamed AnimalCompany_Data -> EACLauncher_Data")
+        spin_msg("Renaming game data...")
+        if os.path.exists(game_data) and not os.path.exists(eac_data):
+            os.rename(game_data, eac_data)
+        print(f"{LPURPLE}   [+] {RESET}Renamed AnimalCompany_Data -> EACLauncher_Data")
 
     print()
     print(f"{GRAY}   ────────────────────────────────────────────────────{RESET}")
